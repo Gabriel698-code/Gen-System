@@ -31,23 +31,6 @@ Este projeto foi construído utilizando uma arquitetura híbrida (Frontend Vanil
 
 ---
 
-## ⚙️ Como Instalar e Rodar
-
-Para executar o Gen-System na sua máquina, é necessário ter o **Python 3.10+** instalado.
-
-**1. Clone o repositório:**
-```bash
-git clone [https://github.com/SEU_USUARIO/gen-system.git](https://github.com/SEU_USUARIO/gen-system.git)
-cd gen-system
-
-**2. Instale as dependências:**
-```bash
-pip install fastapi uvicorn pydantic pywebview streamlit google-generativeai fpdf python-docx openpyxl pandas PyPDF2 duckduckgo_search
-
-**3. Inicie o sistema:**
-```bash
-python main.py
-
 ## 🔑 Primeiro Acesso e Ativação
 
 O Gen-System possui uma arquitetura segura (Local-First). Ao rodar o comando `python main.py` pela primeira vez, a janela do aplicativo será aberta apresentando a tela de ativação.
@@ -70,5 +53,22 @@ O Gen-System validará a chave em tempo real e criará o arquivo `user_config.js
 * 📊 **Planilhas Dinâmicas:** Cria controles de estoque, precificação e fluxo de caixa em `.xlsx`.
 * 👁️ **Análise Multimodal:** Capacidade de ler e interpretar documentos Word, PDFs, planilhas Excel e imagens submetidas no chat.
 * 🌐 **Deep Search Integrado:** O sistema faz buscas na internet em tempo real para consultar leis atualizadas e cotações financeiras antes de formular a resposta.
+
+## ⚙️ Como Instalar e Rodar
+
+Para executar o Gen-System na sua máquina, é necessário ter o **Python 3.10+** instalado.
+
+**1. Clone o repositório:**
+```bash
+git clone [https://github.com/SEU_USUARIO/gen-system.git](https://github.com/SEU_USUARIO/gen-system.git)
+cd gen-system
+
+**2. Instale as dependências:**
+```bash
+pip install fastapi uvicorn pydantic pywebview streamlit google-generativeai fpdf python-docx openpyxl pandas PyPDF2 duckduckgo_search
+
+**3. Inicie o sistema:**
+```bash
+python main.py
 
 
