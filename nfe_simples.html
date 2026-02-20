@@ -1,0 +1,1425 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gen System — Emissor NF-e</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #121214;
+    --card-bg: #202024;
+    --input-bg: #29292e;
+    --input-readonly: #1a1a1e;
+    --text-primary: #e1e1e6;
+    --text-secondary: #a8a8b3;
+    --accent: #8257e5;
+    --accent-hover: #996dff;
+    --border: #323238;
+    --danger: #e96379;
+    --success: #04d361;
+    --shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+
+  /* --- Reset & Scrollbar --- */
+  * { box-sizing: border-box; }
+  
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    padding: 20px;
+    line-height: 1.6;
+  }
+
+  /* --- Layout --- */
+  
+  .wrap {
+    max-width: 1150px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 30px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  /* --- Tipografia --- */
+  h1 { 
+    margin: 0 0 10px; 
+    font-size: 24px; 
+    color: white; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    font-weight: 700;
+  }
+  h1 i { color: var(--accent); }
+  
+  p.lead { 
+    margin: 0 0 30px; 
+    color: var(--text-secondary); 
+    font-size: 0.95rem; 
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 15px;
+  }
+
+  /* --- Grid System --- */
+  .grid { display: grid; gap: 15px; }
+  .two { grid-template-columns: 1fr 1fr; }
+  .three { grid-template-columns: 1fr 1fr 1fr; }
+  .four { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  /* --- Inputs --- */
+  label { 
+    display: block; 
+    font-size: 0.85rem; 
+    color: var(--text-secondary); 
+    margin-bottom: 6px; 
+    font-weight: 600; 
+  }
+  
+  input[type=text], input[type=number], input[type=datetime-local], select, textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    background: var(--input-bg);
+    color: white;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  /* Campos automáticos (ReadOnly) parecem desabilitados visualmente */
+  input[readonly], input:disabled {
+    background: var(--input-readonly);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    border-color: transparent;
+  }
+
+  input:focus, select:focus, textarea:focus { 
+    border-color: var(--accent); 
+    box-shadow: 0 0 0 2px rgba(130, 87, 229, 0.2);
+  }
+
+  /* --- Seções --- */
+  .section { margin-top: 35px; animation: fadeIn 0.5s ease; }
+  
+  .sectionTitle {
+    font-size: 1rem;
+    color: var(--accent-hover);
+    background: rgba(130, 87, 229, 0.08);
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    border-left: 4px solid var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* --- Tabelas --- */
+  .table-container { 
+    overflow-x: auto; 
+    border: 1px solid var(--border); 
+    border-radius: 8px; 
+    background: var(--input-bg);
+  }
+  
+  table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    min-width: 700px; 
+  }
+  
+  th, td { 
+    padding: 14px; 
+    border-bottom: 1px solid var(--border); 
+    text-align: left; 
+    font-size: 13px; 
+    color: var(--text-primary); 
+  }
+  
+  th { 
+    background-color: #1a1a1e; 
+    color: var(--text-secondary); 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    font-size: 0.75rem;
+    position: sticky; /* Cabeçalho fixo */
+    top: 0;
+  }
+  
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background-color: rgba(255,255,255,0.02); } /* Highlight na linha */
+  
+  th.right, td.right { text-align: right; }
+  
+  /* --- Botões --- */
+  .btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: 0;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .btn:hover { 
+    background: var(--accent-hover); 
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(130, 87, 229, 0.3);
+  }
+  
+  .btn:active { transform: translateY(0); }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .btn-outline:hover {
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.05);
+  }
+
+  .btn-danger { background: rgba(233, 99, 121, 0.1); color: var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: white; }
+
+  /* --- Footer de Ações --- */
+  .footer { 
+    margin-top: 40px; 
+    padding-top: 20px; 
+    border-top: 1px solid var(--border); 
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 15px; 
+  }
+
+  /* --- Modal CFOP --- */
+  .cfop-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(2px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .cfop-overlay.active { 
+    display: flex; 
+    opacity: 1; 
+  }
+
+  .cfop-modal {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+  }
+  
+  .cfop-overlay.active .cfop-modal { transform: scale(1); }
+
+  .cfop-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;
+  }
+  .cfop-header h2 { margin: 0; font-size: 1.2rem; color: white; }
+  .close-modal { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.5rem; }
+  .close-modal:hover { color: var(--danger); }
+
+  .cfop-section h3 {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .cfop-item {
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    border: 1px solid transparent;
+    transition: 0.2s;
+    margin-bottom: 5px;
+  }
+
+  .cfop-item:hover {
+    background: rgba(130, 87, 229, 0.1);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  input[data-field="cfop"] {
+  width: 70px !important; /* O !important garante que vence qualquer estilo do JS */
+  text-align: center;
+}
+
+/* =========================
+   MODAL NCM
+========================= */
+
+.ncm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(2px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ncm-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+.ncm-modal {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  width: 90%;
+  max-width: 650px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+}
+
+.ncm-overlay.active .ncm-modal {
+  transform: scale(1);
+}
+
+/* --- Cabeçalho --- */
+.ncm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.ncm-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.ncm-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.ncm-close:hover {
+  color: var(--danger);
+}
+
+/* --- Bloco explicativo --- */
+.ncm-info {
+  background: rgba(130, 87, 229, 0.08);
+  border-left: 4px solid var(--accent);
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ncm-info strong {
+  color: var(--accent-hover);
+}
+
+/* --- Seções de NCM --- */
+.ncm-section h3 {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* --- Item de NCM --- */
+.ncm-item {
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  margin-bottom: 6px;
+}
+
+.ncm-item strong {
+  font-weight: 700;
+}
+
+.ncm-item:hover {
+  background: rgba(130, 87, 229, 0.12);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* --- Campo manual --- */
+.ncm-manual {
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+}
+
+.ncm-manual label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.ncm-manual input {
+  margin-top: 6px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: white;
+}
+
+/* ================================
+   TOOLTIP (UNIDADE / AJUDA RÁPIDA)
+   ================================ */
+
+.help-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.help-wrapper input {
+  margin: 0;
+}
+
+/* Botão de ajuda padronizado */
+.help-tooltip-btn {
+  width: 28px;              /* alinhado com CFOP / NCM */
+  height: 28px;             /* alinhado com CFOP / NCM */
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-tooltip-btn:hover {
+  color: white;
+  border-color: var(--accent);
+  background: rgba(130, 87, 229, 0.15);
+}
+
+/* Caixa do tooltip */
+.help-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: all 0.2s ease;
+  z-index: 999;
+}
+
+/* Seta do tooltip */
+.help-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 12px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--card-bg) transparent transparent transparent;
+}
+
+/* Mostrar tooltip ao passar o mouse */
+.help-wrapper:hover .help-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Destaques internos */
+.help-tooltip strong {
+  color: white;
+}
+
+.help-tooltip ul {
+  padding-left: 18px;
+  margin: 8px 0 0;
+}
+
+.help-tooltip li {
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+}
+
+
+  /* --- Mobile --- */
+  @media (max-width: 900px) { 
+    .two, .three, .four { grid-template-columns: 1fr; } 
+    .wrap { padding: 20px; width: 100%; border-radius: 0; border: none; } 
+    .footer { flex-direction: column; gap: 15px; }
+    .btn { width: 100%; }
+  }
+
+  /* --- Animações --- */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap" role="main">
+  <h1><i class="fas fa-file-invoice"></i> Emissor NF-e <span style="font-size:0.6em; opacity:0.6; font-weight:400; margin-left:10px">(Gen System v4.0)</span></h1>
+  <p class="lead">Geração de XML (v4.00) com cálculo automático de impostos, Chave de Acesso e QR-Code.</p>
+
+  <div class="section">
+    <div class="sectionTitle">
+      <span>1. Emitente (Sua Empresa)</span>
+      <i class="fas fa-building"></i>
+    </div>
+    
+    <div class="grid two">
+      <div>
+        <label for="emit_nome">Razão Social</label>
+        <input id="emit_nome" type="text" placeholder="Ex: Minha Loja LTDA">
+      </div>
+      <div>
+        <label for="emit_cnpj">CNPJ</label>
+        <input id="emit_cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18">
+      </div>
+    </div>
+
+    <div class="grid two">
+      <div>
+        <label for="emit_ie">Inscrição Estadual</label>
+        <input id="emit_ie" type="number" placeholder="Apenas números">
+      </div>
+      <div>
+        <label for="tipo_nota">Tipo de Nota Fiscal</label>
+        <select id="tipo_nota" onchange="atualizarTipoNota()"> <option value="nfe">NF-e – Nota Fiscal Eletrônica (Mod. 55)</option>
+          <option value="nfce">NFC-e – Consumidor Final (Mod. 65)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid three">
+      <div>
+        <label for="emit_cep">CEP</label>
+        <input id="emit_cep" type="text" placeholder="00000-000" onblur="buscarCep('emit')"> </div>
+      <div style="grid-column: span 2;">
+        <label for="emit_logradouro">Logradouro</label>
+        <input id="emit_logradouro" type="text">
+      </div>
+    </div>
+
+    <div class="grid four">
+      <div>
+        <label for="emit_num">Número</label>
+        <input id="emit_num" type="text">
+      </div>
+      <div>
+        <label for="emit_bairro">Bairro</label>
+        <input id="emit_bairro" type="text">
+      </div>
+      <div>
+        <label for="emit_cidade">Cidade</label>
+        <input id="emit_cidade" type="text">
+      </div>
+      <div>
+        <label for="emit_uf_select">UF</label>
+        <select id="emit_uf_select">
+            <option value="SP">SP</option>
+            <option value="RJ">RJ</option>
+            <option value="MG">MG</option>
+            </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="areaCSC" style="display:none">
+    <div class="sectionTitle">Segurança NFC-e (CSC)</div>
+    <div class="grid two">
+      <div>
+        <label>ID do CSC (idToken)</label>
+        <input id="idcsc" type="text" placeholder="Ex: 000001">
+      </div>
+      <div>
+        <label>CSC (Código de Segurança)</label>
+        <input id="csc" type="text" placeholder="Ex: AAAA-BBBB-CCCC-DDDD">
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sectionTitle">
+      <span>2. Destinatário (Cliente)</span>
+      <i class="fas fa-user-tag"></i>
+    </div>
+    <div class="grid two">
+      <div>
+        <label for="dest_nome">Nome / Razão Social</label>
+        <input id="dest_nome" type="text">
+      </div>
+      <div>
+        <label for="dest_cpfcnpj">CPF / CNPJ</label>
+        <input id="dest_cpfcnpj" type="text">
+      </div>
+    </div>
+    
+    <div style="margin-top:10px">
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="dest_has_address" style="width:auto;"> 
+            Incluir Endereço do Cliente na Nota
+        </label>
+    </div>
+
+    <div id="dest_endereco_container">
+        <div class="grid two" style="margin-top:10px;">
+          <div><label>CEP</label><input id="dest_cep" type="text"></div>
+          <div><label>Logradouro</label><input id="dest_logradouro" type="text"></div>
+        </div>
+        <div class="grid three">
+           <div><label>Número</label><input id="dest_num" type="text"></div>
+           <div><label>Bairro</label><input id="dest_bairro" type="text"></div>
+           <div><label>Cidade/UF</label><input id="dest_cidade" type="text" placeholder="Cidade - UF"></div>
+        </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sectionTitle">
+      <span>3. Detalhes da Emissão</span>
+      <i class="fas fa-calendar-alt"></i>
+    </div>
+    <div class="grid three">
+      <div>
+        <label>Número NF</label>
+        <input id="ide_num" type="number" value="1">
+      </div>
+      <div>
+        <label>Série</label>
+        <input id="ide_serie" type="text" value="1">
+      </div>
+      <div>
+        <label>Data/Hora</label>
+        <input id="ide_data" type="datetime-local">
+      </div>
+    </div>
+    <div class="grid two">
+      <div>
+        <label>Natureza da Operação</label>
+        <input id="ide_natureza" type="text" value="Venda de Mercadoria">
+      </div>
+      <div>
+        <label>Tipo de Movimento</label>
+        <select id="ide_tipo">
+          <option value="1">1 - Saída (Venda)</option>
+          <option value="0">0 - Entrada (Devolução)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sectionTitle">
+      <span>4. Produtos e Serviços</span>
+      <i class="fas fa-box-open"></i>
+    </div>
+    
+    <div class="table-container">
+      <table id="prodTable">
+        <thead>
+          <tr>
+            <th style="width: 50px">Item</th>
+            <th style="width: 100px">Código</th>
+            <th>Descrição</th>
+            <th style="width: 100px">NCM</th>
+            <th style="width: 80px">CFOP</th>
+            <th style="width: 60px">Un</th>
+            <th style="width: 80px">Qtd</th>
+            <th style="width: 100px">V. Unit</th>
+            <th class="right">Total</th>
+            <th style="width: 50px"></th>
+          </tr>
+        </thead>
+        <tbody id="prodBody">
+          </tbody>
+      </table>
+    </div>
+    
+    <div style="margin-top: 15px;">
+      <button class="btn btn-outline" type="button" id="btnAdd" onclick="adicionarProduto()">
+        <i class="fas fa-plus"></i> Adicionar Item
+      </button>
+    </div>
+
+    <div class="summary" style="margin-top: 30px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px;">
+      <div class="grid three">
+         <div>
+            <label>Frete (R$)</label>
+            <input id="frete" type="number" step="0.01" value="0.00" onchange="calcularTotalNota()">
+         </div>
+         <div>
+            <label>Outras Despesas (R$)</label>
+            <input id="despesas" type="number" step="0.01" value="0.00" onchange="calcularTotalNota()">
+         </div>
+         <div>
+            <label>Modalidade Frete</label>
+            <select id="trans_modal">
+               <option value="9">9 - Sem Frete</option>
+               <option value="0">0 - Por conta do Remetente (CIF)</option>
+               <option value="1">1 - Por conta do Destinatário (FOB)</option>
+            </select>
+         </div>
+      </div>
+      
+      <div style="margin-top:20px; text-align:right; border-top: 1px solid var(--border); padding-top: 15px;">
+         <div style="color:var(--text-secondary); font-size: 14px; margin-bottom: 5px;">
+            Soma dos Produtos: <strong id="valorProdutos" style="color:white">R$ 0,00</strong>
+         </div>
+         <div style="font-size: 24px; color: var(--success); font-weight: bold;">
+            Total NF: <span id="totalNota">R$ 0,00</span>
+         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div style="font-size: 13px; color: var(--text-secondary); text-align: left; flex: 1;">
+      <i class="fas fa-shield-alt" style="color: var(--accent)"></i> 
+      Certifique-se de conectar seu Certificado Digital A1 ou A3 para assinar o XML.
+    </div>
+    <div>
+      <button class="btn btn-outline" onclick="window.print()">
+        <i class="fas fa-print"></i> Imprimir Prévia
+      </button>
+      <button class="btn" id="btnDownload" onclick="gerarXML()">
+        <i class="fas fa-file-code"></i> BAIXAR XML
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="cfopModal" class="cfop-overlay" onclick="fecharCFOPModal(event)">
+  <div class="cfop-modal" onclick="event.stopPropagation()">
+    
+    <div class="cfop-header">
+      <h2>📘 Selecionar CFOP</h2>
+      <button class="close-modal" onclick="fecharCFOPModal(null)">&times;</button>
+    </div>
+
+    <div class="cfop-section">
+      <h3>🟢 Vendas (Saída)</h3>
+      <div class="cfop-item" onclick="selecionarCFOP('5102')"><strong>5102</strong> — Venda de mercadoria (dentro do estado)</div>
+      <div class="cfop-item" onclick="selecionarCFOP('5101')"><strong>5101</strong> — Venda de produção própria</div>
+      <div class="cfop-item" onclick="selecionarCFOP('6102')"><strong>6102</strong> — Venda interestadual (fora do estado)</div>
+      <div class="cfop-item" onclick="selecionarCFOP('6108')"><strong>6108</strong> — Venda a não contribuinte (fora do estado)</div>
+    </div>
+
+    <div class="cfop-section">
+      <h3>🟡 Devoluções / Entradas</h3>
+      <div class="cfop-item" onclick="selecionarCFOP('1202')"><strong>1202</strong> — Devolução de venda (dentro do estado)</div>
+      <div class="cfop-item" onclick="selecionarCFOP('2202')"><strong>2202</strong> — Devolução de venda (fora do estado)</div>
+    </div>
+
+    <div class="cfop-section">
+      <h3>🟠 Simples Nacional / ST</h3>
+      <div class="cfop-item" onclick="selecionarCFOP('5405')"><strong>5405</strong> — Venda c/ Subst. Tributária (ST)</div>
+    </div>
+
+    <div class="cfop-manual" style="margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border);">
+      <label>✏️ Ou digite manualmente:</label>
+      <div style="display: flex; gap: 10px;">
+          <input type="text" id="inputManualCFOP" maxlength="4" placeholder="Ex: 5949">
+          <button class="btn" style="padding: 8px 15px;" onclick="usarCFOPManual()">OK</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL NCM -->
+<div id="ncmModal" class="ncm-overlay" onclick="fecharNCMModal(event)">
+  <div class="ncm-modal" onclick="event.stopPropagation()">
+
+    <div class="ncm-header">
+      <h2>📦 Selecionar NCM</h2>
+      <button class="ncm-close" onclick="fecharNCMModal(null)">&times;</button>
+    </div>
+
+    <!-- EXPLICAÇÃO -->
+    <div class="ncm-info">
+      <strong>O que é NCM?</strong><br>
+      NCM (Nomenclatura Comum do Mercosul) é o código que identifica
+      <strong>o tipo da mercadoria</strong> na Nota Fiscal.<br><br>
+      Ele define impostos, regras fiscais e obrigações legais.
+      <br>
+      📌 Todo produto deve ter um NCM com <strong>8 dígitos numéricos</strong>.
+    </div>
+
+    <!-- LISTA DE NCMs COMUNS -->
+    <div class="ncm-section">
+      <h3>🟢 Mercadorias Comuns</h3>
+
+      <div class="ncm-item" onclick="selecionarNCM('19059090')">
+        <strong>19059090</strong> — Produtos de padaria, bolos, pães, salgados
+      </div>
+
+      <div class="ncm-item" onclick="selecionarNCM('61091000')">
+        <strong>61091000</strong> — Camisetas de algodão
+      </div>
+
+      <div class="ncm-item" onclick="selecionarNCM('62034200')">
+        <strong>62034200</strong> — Calças masculinas (jeans)
+      </div>
+
+      <div class="ncm-item" onclick="selecionarNCM('85171231')">
+        <strong>85171231</strong> — Telefones celulares (smartphones)
+      </div>
+
+      <div class="ncm-item" onclick="selecionarNCM('84713012')">
+        <strong>84713012</strong> — Notebooks e laptops
+      </div>
+
+      <div class="ncm-item" onclick="selecionarNCM('94036000')">
+        <strong>94036000</strong> — Móveis de madeira
+      </div>
+    </div>
+
+    <!-- CAMPO MANUAL -->
+    <div class="ncm-manual">
+      <label>✏️ Ou digite manualmente o NCM:</label>
+      <input id="inputManualNCM" type="text" maxlength="8" placeholder="Ex: 33049910">
+      <button class="btn" style="margin-top:10px" onclick="usarNCMManual()">Usar NCM</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL UNIDADE -->
+<div id="unModal" class="cfop-overlay" onclick="fecharUNModal(event)">
+  <div class="cfop-modal" style="max-width:420px" onclick="event.stopPropagation()">
+
+    <div class="cfop-header">
+      <h2>📦 Unidade do Produto</h2>
+      <button class="close-modal" onclick="fecharUNModal(null)">&times;</button>
+    </div>
+
+    <div style="font-size:14px; color:var(--text-secondary); margin-bottom:15px;">
+      Define como o produto é comercializado na nota fiscal.
+    </div>
+
+    <div class="cfop-section">
+      <h3>Unidades mais usadas</h3>
+
+      <div class="cfop-item" onclick="selecionarUN('UN')"><strong>UN</strong> — Unidade</div>
+      <div class="cfop-item" onclick="selecionarUN('PC')"><strong>PC</strong> — Peça</div>
+      <div class="cfop-item" onclick="selecionarUN('CX')"><strong>CX</strong> — Caixa</div>
+      <div class="cfop-item" onclick="selecionarUN('FD')"><strong>FD</strong> — Fardo</div>
+
+      <div class="cfop-item" onclick="selecionarUN('KG')"><strong>KG</strong> — Quilograma</div>
+      <div class="cfop-item" onclick="selecionarUN('G')"><strong>G</strong> — Grama</div>
+
+      <div class="cfop-item" onclick="selecionarUN('LT')"><strong>LT</strong> — Litro</div>
+      <div class="cfop-item" onclick="selecionarUN('ML')"><strong>ML</strong> — Mililitro</div>
+
+      <div class="cfop-item" onclick="selecionarUN('M')"><strong>M</strong> — Metro</div>
+      <div class="cfop-item" onclick="selecionarUN('M2')"><strong>M²</strong> — Metro quadrado</div>
+      <div class="cfop-item" onclick="selecionarUN('M3')"><strong>M³</strong> — Metro cúbico</div>
+    </div>
+
+    <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+      <label>✏️ Ou digite manualmente:</label>
+      <div style="display:flex; gap:10px;">
+        <input id="inputManualUN" type="text" maxlength="6" placeholder="Ex: PCT">
+        <button class="btn" onclick="usarUNManual()">OK</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// --- 1. CONFIGURAÇÃO E DADOS ---
+const UFS = [
+  {sigla:'AC', cUF:'12'}, {sigla:'AL', cUF:'27'}, {sigla:'AP', cUF:'16'}, {sigla:'AM', cUF:'13'},
+  {sigla:'BA', cUF:'29'}, {sigla:'CE', cUF:'23'}, {sigla:'DF', cUF:'53'}, {sigla:'ES', cUF:'32'},
+  {sigla:'GO', cUF:'52'}, {sigla:'MA', cUF:'21'}, {sigla:'MT', cUF:'51'}, {sigla:'MS', cUF:'50'},
+  {sigla:'MG', cUF:'31'}, {sigla:'PA', cUF:'15'}, {sigla:'PB', cUF:'25'}, {sigla:'PR', cUF:'41'},
+  {sigla:'PE', cUF:'26'}, {sigla:'PI', cUF:'22'}, {sigla:'RJ', cUF:'33'}, {sigla:'RN', cUF:'24'},
+  {sigla:'RS', cUF:'43'}, {sigla:'RO', cUF:'11'}, {sigla:'RR', cUF:'14'}, {sigla:'SC', cUF:'42'},
+  {sigla:'SP', cUF:'35'}, {sigla:'SE', cUF:'28'}, {sigla:'TO', cUF:'17'}
+];
+
+const emitUfSelect = document.getElementById('emit_uf_select');
+UFS.forEach(u => {
+  const opt = document.createElement('option'); 
+  opt.value = u.sigla; // Usando Sigla para facilitar visualização, converteremos p/ código no XML
+  opt.textContent = u.sigla; 
+  emitUfSelect.appendChild(opt);
+});
+
+// --- 2. UTILITÁRIOS ---
+function safeVal(id, def='') { const el = document.getElementById(id); return el ? el.value : def; }
+function onlyDigits(s) { return (s || '').toString().replace(/\D/g, ''); }
+function currencyFmt(v) { return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ','); }
+function getUFCode(sigla) { const f = UFS.find(u => u.sigla === sigla); return f ? f.cUF : '35'; }
+
+// --- 3. LÓGICA DE INTERFACE ---
+function atualizarTipoNota() {
+    const tipo = document.getElementById('tipo_nota').value;
+    const areaCSC = document.getElementById('areaCSC');
+    if(tipo === 'nfce') {
+        areaCSC.style.display = 'block';
+        areaCSC.style.animation = 'fadeIn 0.5s';
+    } else {
+        areaCSC.style.display = 'none';
+    }
+}
+
+// Busca CEP automática
+function buscarCep(prefixo) {
+    const cep = onlyDigits(document.getElementById(prefixo + '_cep').value);
+    if (cep.length !== 8) return;
+
+    // Feedback visual
+    document.getElementById(prefixo + '_logradouro').placeholder = "Buscando...";
+
+    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(r => r.json())
+        .then(d => {
+            if (!d.erro) {
+                document.getElementById(prefixo + '_logradouro').value = d.logradouro;
+                document.getElementById(prefixo + '_bairro').value = d.bairro;
+                document.getElementById(prefixo + '_cidade').value = d.localidade;
+                
+                // Tenta selecionar o UF
+                const selectUF = document.getElementById(prefixo === 'emit' ? 'emit_uf_select' : 'dest_uf'); // Destinatário pode ser input texto
+                if(selectUF && selectUF.tagName === 'SELECT') selectUF.value = d.uf;
+                else if(document.getElementById('dest_cidade')) document.getElementById('dest_cidade').value = d.localidade + ' - ' + d.uf;
+                
+                // Foco no número
+                document.getElementById(prefixo + '_num').focus();
+            } else {
+                alert("CEP não encontrado.");
+            }
+        })
+        .catch(() => console.log("Erro ao buscar CEP"));
+}
+
+// --- 4. TABELA DE PRODUTOS (CORRIGIDA E ALINHADA) ---
+let prodIndex = 0;
+const defaultProd = { ncm: '00000000', cfop: '5102', un: 'UN', vunit: '0.00', qtd: '1' };
+
+function adicionarProduto() {
+    prodIndex++;
+    const tbody = document.getElementById('prodBody');
+    const tr = document.createElement('tr');
+    
+    tr.innerHTML = `
+        <td>${prodIndex}</td>
+        
+        <td><input data-field="cod" type="text" value="ITEM${prodIndex}"></td>
+        
+        <td><input data-field="desc" type="text" placeholder="Descrição do produto"></td>
+        
+        <td>
+            <div style="display:flex; gap:5px; align-items:center;">
+                <input 
+                    data-field="ncm" 
+                    type="text" 
+                    value="00000000" 
+                    maxlength="8" 
+                    style="width:90px" 
+                    onclick="abrirNCMModal(this)"
+                >
+                <button 
+                    type="button" 
+                    class="btn btn-outline" 
+                    style="padding:5px 8px; font-weight: bold;" 
+                    onclick="abrirNCMModal(this.previousElementSibling)"
+                >
+                    ?
+                </button>
+            </div>
+        </td>
+
+        <td>
+            <div style="display:flex; gap:5px; align-items:center;">
+                <input 
+                    data-field="cfop" 
+                    type="text" 
+                    value="${defaultProd.cfop}" 
+                    maxlength="4" 
+                    style="width:70px; text-align:center;"
+                >
+                <button 
+                    type="button" 
+                    class="btn btn-outline" 
+                    style="padding:5px 8px; font-weight: bold;" 
+                    onclick="abrirCFOPModal(this.previousElementSibling)"
+                >
+                    ?
+                </button>
+            </div>
+        </td>
+
+        <td>
+            <div style="display:flex; gap:5px; align-items:center;">
+                <input
+                    data-field="un"
+                    type="text"
+                    value="${defaultProd.un}"
+                    style="width:60px; text-align:center;"
+                    onclick="abrirUNModal(this)"
+                >
+                <button
+                    type="button"
+                    class="btn btn-outline"
+                    style="padding:5px 8px; font-weight: bold;"
+                    onclick="abrirUNModal(this.previousElementSibling)"
+                    title="Selecionar Unidade"
+                >
+                    ?
+                </button>
+            </div>
+        </td>
+
+        <td><input data-field="qtd" type="number" step="0.01" value="${defaultProd.qtd}" oninput="calcularTotalNota()"></td>
+        <td><input data-field="vunit" type="number" step="0.01" value="${defaultProd.vunit}" oninput="calcularTotalNota()"></td>
+        <td class="right" data-total>R$ 0,00</td>
+        <td><button class="btn btn-danger" type="button" onclick="removerLinha(this)" style="padding:8px 12px;"><i class="fas fa-trash"></i></button></td>
+    `;
+    
+    tbody.appendChild(tr);
+    calcularTotalNota();
+}
+
+// --- 5. LÓGICA DO MODAL CFOP ---
+let inputCFOPAtual = null;
+
+function abrirCFOPModal(inputElement) {
+    inputCFOPAtual = inputElement;
+    const overlay = document.getElementById('cfopModal');
+    overlay.style.display = 'flex';
+    setTimeout(() => overlay.classList.add('active'), 10); // Trigger CSS animation
+}
+
+function fecharCFOPModal(e) {
+    const overlay = document.getElementById('cfopModal');
+    overlay.classList.remove('active');
+    setTimeout(() => overlay.style.display = 'none', 300); // Wait animation
+}
+
+function selecionarCFOP(valor) {
+    if (inputCFOPAtual) {
+        inputCFOPAtual.value = valor;
+        // Dispara evento manual se necessário, mas aqui só atualiza visual
+    }
+    fecharCFOPModal();
+}
+
+function usarCFOPManual() {
+    const val = document.getElementById('inputManualCFOP').value;
+    if(val) selecionarCFOP(val);
+}
+
+// --- 6. GERAÇÃO DO XML (CORE) ---
+function escapeXml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe.toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":"&apos;"}[c]));
+}
+
+function gerarChaveAcesso(cnpj, serie, nNF, cNF, cUF, dhEmi) {
+    const data = new Date(dhEmi);
+    const AAMM = String(data.getFullYear()).slice(-2) + String(data.getMonth()+1).padStart(2,'0');
+    const modelo = document.getElementById('tipo_nota').value === 'nfce' ? '65' : '55';
+    const chaveSemDV = `${cUF}${AAMM}${cnpj}${modelo}${String(serie).padStart(3,'0')}${String(nNF).padStart(9,'0')}1${cNF}`;
+    
+    let peso = 2, soma = 0;
+    for (let i = chaveSemDV.length - 1; i >= 0; i--) {
+        soma += parseInt(chaveSemDV[i]) * peso;
+        peso = peso < 9 ? peso + 1 : 2;
+    }
+    const resto = soma % 11;
+    const cDV = (resto === 0 || resto === 1) ? 0 : (11 - resto);
+    
+    return { chave: chaveSemDV + cDV, cDV };
+}
+
+// Mapeamento de funções para o HTML (Aliases)
+window.gerarXML = downloadXML; // O botão no HTML chama gerarXML, mas a função lógica é downloadXML
+
+async function downloadXML() {
+    try {
+        // Validações Básicas
+        const cnpjEmit = onlyDigits(safeVal('emit_cnpj'));
+        if (cnpjEmit.length !== 14) return alert("CNPJ do Emitente inválido.");
+        
+        const linhas = document.querySelectorAll('#prodBody tr');
+        if (linhas.length === 0) return alert("Adicione pelo menos um produto.");
+
+        // Dados Gerais
+        const nNF = safeVal('ide_num');
+        const serie = safeVal('ide_serie');
+        const cNF = String(Math.floor(Math.random() * 99999999)).padStart(8,'0');
+        const dataAgora = new Date();
+        const dhEmi = dataAgora.toISOString().split('.')[0] + '-03:00'; // Formato UTC-3 simples
+        const cUF = getUFCode(safeVal('emit_uf_select'));
+        
+        // Gera Chave
+        const chaves = gerarChaveAcesso(cnpjEmit, serie, nNF, cNF, cUF, dataAgora);
+        
+        // Constrói XML (String Builder)
+        let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+<infNFe Id="NFe${chaves.chave}" versao="4.00">
+    <ide>
+        <cUF>${cUF}</cUF>
+        <cNF>${cNF}</cNF>
+        <natOp>${escapeXml(safeVal('ide_natureza'))}</natOp>
+        <mod>${document.getElementById('tipo_nota').value === 'nfce' ? '65' : '55'}</mod>
+        <serie>${serie}</serie>
+        <nNF>${nNF}</nNF>
+        <dhEmi>${dhEmi}</dhEmi>
+        <tpNF>${safeVal('ide_tipo')}</tpNF>
+        <idDest>1</idDest>
+        <cMunFG>${safeVal('emit_cmun', '3550308')}</cMunFG>
+        <tpImp>1</tpImp>
+        <tpEmis>1</tpEmis>
+        <cDV>${chaves.cDV}</cDV>
+        <tpAmb>2</tpAmb>
+        <finNFe>1</finNFe>
+        <indFinal>1</indFinal>
+        <indPres>1</indPres>
+        <procEmi>0</procEmi>
+        <verProc>GenSystem 4.0</verProc>
+    </ide>
+    <emit>
+        <CNPJ>${cnpjEmit}</CNPJ>
+        <xNome>${escapeXml(safeVal('emit_nome'))}</xNome>
+        <enderEmit>
+            <xLgr>${escapeXml(safeVal('emit_logradouro'))}</xLgr>
+            <nro>${escapeXml(safeVal('emit_num'))}</nro>
+            <xBairro>${escapeXml(safeVal('emit_bairro'))}</xBairro>
+            <cMun>3550308</cMun>
+            <xMun>${escapeXml(safeVal('emit_cidade'))}</xMun>
+            <UF>${safeVal('emit_uf_select')}</UF>
+            <CEP>${onlyDigits(safeVal('emit_cep'))}</CEP>
+            <cPais>1058</cPais>
+            <xPais>BRASIL</xPais>
+        </enderEmit>
+        <IE>${onlyDigits(safeVal('emit_ie'))}</IE>
+        <CRT>1</CRT>
+    </emit>
+    <dest>
+        ${safeVal('dest_cpfcnpj').length > 11 ? `<CNPJ>${onlyDigits(safeVal('dest_cpfcnpj'))}</CNPJ>` : `<CPF>${onlyDigits(safeVal('dest_cpfcnpj'))}</CPF>`}
+        <xNome>${escapeXml(safeVal('dest_nome'))}</xNome>
+        <indIEDest>9</indIEDest>
+    </dest>
+`;
+
+        // Itens
+        let i = 1;
+        let totalProd = 0;
+        
+        linhas.forEach(tr => {
+            const prod = {
+                cProd: tr.querySelector('[data-field="cod"]').value,
+                xProd: tr.querySelector('[data-field="desc"]').value,
+                NCM: onlyDigits(tr.querySelector('[data-field="ncm"]').value),
+                CFOP: onlyDigits(tr.querySelector('[data-field="cfop"]').value),
+                uCom: tr.querySelector('[data-field="un"]').value,
+                qCom: Number(tr.querySelector('[data-field="qtd"]').value),
+                vUnCom: Number(tr.querySelector('[data-field="vunit"]').value)
+            };
+            const vProd = prod.qCom * prod.vUnCom;
+            totalProd += vProd;
+
+            xml += `    <det nItem="${i}">
+        <prod>
+            <cProd>${escapeXml(prod.cProd)}</cProd>
+            <cEAN>SEM GTIN</cEAN>
+            <xProd>${escapeXml(prod.xProd)}</xProd>
+            <NCM>${prod.NCM}</NCM>
+            <CFOP>${prod.CFOP}</CFOP>
+            <uCom>${prod.uCom}</uCom>
+            <qCom>${prod.qCom.toFixed(4)}</qCom>
+            <vUnCom>${prod.vUnCom.toFixed(4)}</vUnCom>
+            <vProd>${vProd.toFixed(2)}</vProd>
+            <cEANTrib>SEM GTIN</cEANTrib>
+            <uTrib>${prod.uCom}</uTrib>
+            <qTrib>${prod.qCom.toFixed(4)}</qTrib>
+            <vUnTrib>${prod.vUnCom.toFixed(4)}</vUnTrib>
+            <indTot>1</indTot>
+        </prod>
+        <imposto>
+            <ICMS>
+                <ICMSSN102>
+                    <orig>0</orig>
+                    <CSOSN>102</CSOSN>
+                </ICMSSN102>
+            </ICMS>
+            <PIS>
+                <PISNt>
+                    <CST>07</CST>
+                </PISNt>
+            </PIS>
+            <COFINS>
+                <COFINSNt>
+                    <CST>07</CST>
+                </COFINSNt>
+            </COFINS>
+        </imposto>
+    </det>
+`;
+            i++;
+        });
+
+        // Totais
+        const vFrete = Number(safeVal('frete')) || 0;
+        const vOutro = Number(safeVal('despesas')) || 0;
+        const vNF = totalProd + vFrete + vOutro;
+
+        xml += `    <total>
+        <ICMSTot>
+            <vBC>0.00</vBC>
+            <vICMS>0.00</vICMS>
+            <vICMSDeson>0.00</vICMSDeson>
+            <vFCP>0.00</vFCP>
+            <vBCST>0.00</vBCST>
+            <vST>0.00</vST>
+            <vFCPST>0.00</vFCPST>
+            <vFCPSTRet>0.00</vFCPSTRet>
+            <vProd>${totalProd.toFixed(2)}</vProd>
+            <vFrete>${vFrete.toFixed(2)}</vFrete>
+            <vSeg>0.00</vSeg>
+            <vDesc>0.00</vDesc>
+            <vII>0.00</vII>
+            <vIPI>0.00</vIPI>
+            <vIPIDevol>0.00</vIPIDevol>
+            <vPIS>0.00</vPIS>
+            <vCOFINS>0.00</vCOFINS>
+            <vOutro>${vOutro.toFixed(2)}</vOutro>
+            <vNF>${vNF.toFixed(2)}</vNF>
+        </ICMSTot>
+    </total>
+    <transp>
+        <modFrete>${safeVal('trans_modal')}</modFrete>
+    </transp>
+</infNFe>
+</NFe>`;
+
+        // Salvar no Banco
+        const dadosNota = {
+            numero: parseInt(nNF),
+            serie: parseInt(serie),
+            chave: chaves.chave,
+            emit_cnpj: cnpjEmit,
+            dest_doc: onlyDigits(safeVal('dest_cpfcnpj')),
+            dest_nome: safeVal('dest_nome'),
+            valor: parseFloat(vNF),
+            tipo: document.getElementById('tipo_nota').value.toUpperCase(),
+            xml: xml
+        };
+
+        fetch('/salvar_nota', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dadosNota)
+        }).then(r => {
+            if(r.ok) console.log("Nota salva no histórico!");
+        });
+
+        // Download
+        const blob = new Blob([xml], {type: 'application/xml'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `NFe_${chaves.chave}.xml`;
+        a.click();
+
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao gerar XML: " + e.message);
+    }
+}
+
+// Inicializa com uma linha
+
+let inputNCMAtual = null;
+
+/* Abrir modal */
+function abrirNCMModal(inputElement) {
+  inputNCMAtual = inputElement;
+
+  const overlay = document.getElementById('ncmModal');
+  overlay.style.display = 'flex';
+
+  // pequeno delay pra animar
+  setTimeout(() => overlay.classList.add('active'), 10);
+}
+
+/* Fechar modal */
+function fecharNCMModal(e) {
+  const overlay = document.getElementById('ncmModal');
+
+  overlay.classList.remove('active');
+
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    inputNCMAtual = null;
+  }, 300);
+}
+
+/* Selecionar NCM da lista */
+function selecionarNCM(valor) {
+  if (!inputNCMAtual) return;
+
+  inputNCMAtual.value = valor;
+
+  // dispara evento de input se existir algum cálculo futuro
+  inputNCMAtual.dispatchEvent(new Event('input'));
+
+  fecharNCMModal();
+}
+
+/* Usar NCM digitado manualmente */
+function usarNCMManual() {
+  const inputManual = document.getElementById('inputManualNCM');
+  if (!inputManual) return;
+
+  const valor = inputManual.value.replace(/\D/g, '');
+
+  if (valor.length !== 8) {
+    alert('⚠️ O NCM deve conter exatamente 8 números.');
+    inputManual.focus();
+    return;
+  }
+
+  selecionarNCM(valor);
+  inputManual.value = '';
+}
+
+/* Validação leve ao sair do campo */
+document.addEventListener('blur', function (e) {
+  if (e.target && e.target.matches('[data-field="ncm"]')) {
+    const val = e.target.value.replace(/\D/g, '');
+
+    if (val && val.length !== 8) {
+      alert('⚠️ NCM inválido. O código deve ter 8 dígitos.');
+      e.target.focus();
+    }
+  }
+}, true);
+
+// ================================
+// MODAL UNIDADE (UN)
+// ================================
+
+let inputUNAtual = null;
+
+function abrirUNModal(input) {
+  inputUNAtual = input;
+  const modal = document.getElementById('unModal');
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('active'), 10);
+}
+
+function fecharUNModal(e) {
+  const modal = document.getElementById('unModal');
+  modal.classList.remove('active');
+  setTimeout(() => modal.style.display = 'none', 300);
+  inputUNAtual = null;
+}
+
+function selecionarUN(valor) {
+  if (inputUNAtual) {
+    inputUNAtual.value = valor;
+    inputUNAtual.dispatchEvent(new Event('input'));
+  }
+  fecharUNModal();
+}
+
+function usarUNManual() {
+  const el = document.getElementById('inputManualUN');
+  if (!el.value) return;
+  selecionarUN(el.value.toUpperCase());
+  el.value = '';
+}
+
+adicionarProduto();
+window.gerarXML = downloadXML;
+</script>
+</body>
+</html>
+

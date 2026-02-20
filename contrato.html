@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contrato - Gen System</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    :root {
+        --bg-dark: #121214;
+        --sidebar-dark: #202024;
+        --input-bg: #29292e;
+        --text-primary: #e1e1e6;
+        --text-secondary: #a8a8b3;
+        --accent: #8257e5;
+        --accent-hover: #996dff;
+        --border: #323238;
+    }
+    body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: var(--text-primary); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    
+    .container { width: 100%; max-width: 700px; padding: 40px; background: var(--sidebar-dark); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    
+    .header { text-align: center; margin-bottom: 30px; }
+    .header i { font-size: 3rem; color: var(--accent); margin-bottom: 10px; }
+    h1 { margin: 0; font-size: 1.8rem; color: white; }
+    p.subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-top: 5px; }
+
+    .alert { background: rgba(231, 171, 60, 0.1); border-left: 4px solid #e7ab3c; padding: 15px; margin-bottom: 25px; border-radius: 4px; font-size: 0.85rem; color: #e7ab3c; }
+    
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); }
+    
+    input, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: 0.2s; box-sizing: border-box; }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+
+    .btn-submit { width: 100%; padding: 15px; background-color: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; }
+    .btn-submit:hover { background-color: var(--accent-hover); }
+    .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <i class="fas fa-file-signature"></i>
+        <h1>Contrato de Serviços</h1>
+        <p class="subtitle">Minuta padrão para formalização simples</p>
+    </div>
+
+    <div class="alert">
+        <i class="fas fa-exclamation-triangle"></i> <strong>Atenção:</strong> O Gen System gera uma minuta automática. Para casos complexos, consulte um advogado.
+    </div>
+
+    <form id="formContrato">
+        <div class="grid-2">
+            <div class="form-group">
+                <label>CONTRATANTE (Cliente)</label>
+                <input id="contratante" placeholder="Nome ou Empresa">
+            </div>
+            <div class="form-group">
+                <label>Documento (CPF/CNPJ)</label>
+                <input id="docContratante" placeholder="000.000.000-00">
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>CONTRATADO (Você)</label>
+                <input id="contratado" placeholder="Seu Nome">
+            </div>
+            <div class="form-group">
+                <label>Documento (CPF/CNPJ)</label>
+                <input id="docContratado" placeholder="000.000.000-00">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Objeto (O que será feito?)</label>
+            <textarea id="objeto" rows="3" placeholder="Ex: Criação de site institucional com 5 páginas..."></textarea>
+        </div>
+
+        <div class="grid-3">
+            <div class="form-group">
+                <label>Valor (R$)</label>
+                <input id="valor" oninput="formatarMoeda(this)" placeholder="0,00">
+            </div>
+            <div class="form-group">
+                <label>Prazo</label>
+                <input id="prazo" placeholder="Ex: 15 dias">
+            </div>
+            <div class="form-group">
+                <label>Multa (%)</label>
+                <input id="multa" type="number" value="10">
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Cidade do Foro</label>
+                <input id="foro" placeholder="Sua Cidade - UF">
+            </div>
+            <div class="form-group">
+                <label>Data de Início</label>
+                <input id="data" type="date">
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-file-word"></i> Gerar Contrato (.docx)
+        </button>
+    </form>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const session_id = params.get('session_id') || 'demo';
+    document.getElementById('data').valueAsDate = new Date();
+
+    function formatarMoeda(i) {
+        let v = i.value.replace(/\D/g,'');
+        v = (v/100).toFixed(2) + '';
+        v = v.replace(".", ",");
+        v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+        i.value = v;
+    }
+
+    document.getElementById('formContrato').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.querySelector('button');
+        const txtOriginal = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        btn.disabled = true;
+
+        const dados = {
+            session_id: session_id,
+            tipo: "contrato",
+            formato: "word", // Importante: Word é editável
+            dados: {
+                contratante: document.getElementById('contratante').value,
+                doc_contratante: document.getElementById('docContratante').value,
+                contratado: document.getElementById('contratado').value,
+                doc_contratado: document.getElementById('docContratado').value,
+                objeto: document.getElementById('objeto').value,
+                valor: document.getElementById('valor').value,
+                prazo: document.getElementById('prazo').value,
+                multa: document.getElementById('multa').value,
+                foro: document.getElementById('foro').value,
+                data: document.getElementById('data').value
+            }
+        };
+
+        try {
+            // Manda para o Python gerar o DOCX
+            const res = await fetch('/gerar_doc_form', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(dados)
+            });
+            const json = await res.json();
+            
+            if(json.link) {
+                // Se deu certo, manda o usuário baixar
+                window.location.href = json.link;
+            } else {
+                alert('Erro: ' + (json.erro || 'Desconhecido'));
+            }
+        } catch(err) {
+            alert('Erro de conexão.');
+            console.error(err);
+        }
+
+        btn.innerHTML = txtOriginal;
+        btn.disabled = false;
+    };
+</script>
+</body>
+</html>

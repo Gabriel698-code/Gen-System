@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recibo - Gen System</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧾</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-dark: #121214;
+        --card-bg: #202024;
+        --input-bg: #29292e;
+        --text-primary: #e1e1e6;
+        --text-secondary: #a8a8b3;
+        --accent: #8257e5;
+        --accent-hover: #996dff;
+        --border: #323238;
+        --success: #04d361;
+    }
+
+    * { box-sizing: border-box; }
+
+    body { 
+        font-family: 'Segoe UI', sans-serif; 
+        background-color: var(--bg-dark); 
+        color: var(--text-primary); 
+        margin: 0; 
+        padding: 20px; 
+        display: flex; 
+        justify-content: center; 
+        min-height: 100vh;
+    }
+    
+    .container { 
+        width: 100%; 
+        max-width: 700px; 
+        background: var(--card-bg); 
+        padding: 35px; 
+        border-radius: 12px; 
+        border: 1px solid var(--border); 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+    }
+    
+    h1 { text-align: center; margin-bottom: 5px; color: white; font-size: 1.8rem; }
+    h1 i { color: var(--accent); margin-right: 10px; }
+    p.sub { text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 0.9rem; }
+    
+    label { font-weight: 600; margin-top: 15px; display: block; font-size: 0.85rem; color: var(--text-secondary); }
+    
+    input, textarea { 
+        width: 100%; padding: 12px; margin-top: 5px; 
+        background: var(--input-bg); border: 1px solid var(--border); 
+        border-radius: 6px; color: white; font-size: 1rem; outline: none; transition: 0.2s; 
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; height: 80px; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    
+    button { 
+        margin-top: 30px; width: 100%; padding: 15px; font-size: 1rem; 
+        border: none; border-radius: 8px; background: var(--accent); 
+        color: white; cursor: pointer; font-weight: bold; transition: 0.2s; 
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .status { text-align: center; margin-top: 15px; font-size: 0.85rem; color: var(--text-secondary); min-height: 20px; }
+
+    /* Responsivo */
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1><i class="fas fa-receipt"></i> Gerador de Recibo</h1>
+    <p class="sub">Gera PDF, salva na pasta local e atualiza o Dashboard.</p>
+
+    <div class="grid-2">
+        <div>
+            <label>Recebedor (Você)</label>
+            <input id="recebedor" placeholder="Sua Empresa">
+        </div>
+        <div>
+            <label>CPF/CNPJ Recebedor</label>
+            <input id="docRecebedor" placeholder="00.000.000/0000-00">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div>
+            <label>Pagador (Cliente)</label>
+            <input id="pagador" placeholder="Nome do Cliente">
+        </div>
+        <div>
+            <label>CPF/CNPJ Pagador</label>
+            <input id="docPagador" placeholder="000.000.000-00">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div>
+            <label>Valor (R$)</label>
+            <input id="valor" type="number" step="0.01" placeholder="0.00" style="font-weight:bold; color:var(--success);">
+        </div>
+        <div>
+            <label>Data</label>
+            <input id="data" type="date">
+        </div>
+    </div>
+
+    <label>Descrição do Pagamento</label>
+    <textarea id="descricao" placeholder="Ex: Referente a serviços de consultoria técnica..."></textarea>
+
+    <div class="grid-2">
+        <div>
+            <label>Forma de Pagamento</label>
+            <input id="forma" placeholder="Ex: Pix, Dinheiro">
+        </div>
+        <div>
+            <label>Cidade / UF</label>
+            <input id="local" value="São Paulo - SP">
+        </div>
+    </div>
+
+    <button onclick="processarRecibo()" id="btnGerar">
+        <i class="fas fa-save"></i> Gerar e Salvar
+    </button>
+    <div class="status" id="statusMsg"></div>
+</div>
+
+<script>
+    // Configuração Inicial
+    document.getElementById('data').valueAsDate = new Date();
+    const params = new URLSearchParams(window.location.search);
+    const session_id = params.get('session_id') || 'sessao_manual';
+
+    function limparTexto(txt) { return txt ? txt.replace(/\D/g, '') : ''; }
+
+    async function processarRecibo() {
+        const btn = document.getElementById('btnGerar');
+        const status = document.getElementById('statusMsg');
+        const valor = document.getElementById("valor").value;
+
+        if(!valor || parseFloat(valor) <= 0) return alert("Informe um valor válido.");
+        if(!document.getElementById("recebedor").value) return alert("Informe o Recebedor.");
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        
+        try {
+            // 1. Gera PDF na memória (Blob)
+            status.innerText = "Gerando documento...";
+            const pdfBlob = await gerarPDFBlob();
+            const nomeArquivo = `Recibo_${Date.now()}.pdf`;
+
+            // 2. Salva o Arquivo Fisicamente (Upload para a pasta documentos do Python)
+            status.innerText = "Salvando arquivo na pasta...";
+            await uploadArquivo(pdfBlob, nomeArquivo);
+
+            // 3. Salva os Dados no Banco (Dashboard)
+            status.innerText = "Atualizando Dashboard...";
+            await salvarDadosDashboard();
+
+            // 4. Baixa para o usuário
+            const link = window.URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = link;
+            a.download = nomeArquivo;
+            a.click();
+
+            status.innerHTML = `<span style="color:var(--success)"><i class="fas fa-check"></i> Sucesso! Arquivo salvo e baixado.</span>`;
+
+        } catch (error) {
+            console.error(error);
+            status.innerText = "⚠️ Erro ao processar. Verifique o console.";
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Gerar e Salvar';
+    }
+
+    async function uploadArquivo(blob, nome) {
+        const formData = new FormData();
+        formData.append('file', blob, nome);
+        await fetch(`/upload_doc/${session_id}`, { method: 'POST', body: formData });
+    }
+
+    async function salvarDadosDashboard() {
+        const dados = {
+            numero: Math.floor(Math.random() * 900000),
+            serie: 0,
+            chave: "REC-" + Date.now(),
+            emit_cnpj: limparTexto(document.getElementById("docRecebedor").value) || "00000000000",
+            dest_doc: limparTexto(document.getElementById("docPagador").value) || "00000000000",
+            dest_nome: document.getElementById("pagador").value || "Consumidor",
+            valor: parseFloat(document.getElementById("valor").value),
+            tipo: "RECIBO",
+            xml: JSON.stringify({ obs: "Recibo gerado via sistema", desc: document.getElementById("descricao").value })
+        };
+
+        await fetch('/salvar_nota', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+    }
+
+    function gerarPDFBlob() {
+        return new Promise((resolve) => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            
+            const recebedor = document.getElementById("recebedor").value;
+            const docRecebedor = document.getElementById("docRecebedor").value;
+            const pagador = document.getElementById("pagador").value;
+            const docPagador = document.getElementById("docPagador").value;
+            const valor = parseFloat(document.getElementById("valor").value).toFixed(2);
+            const descricao = document.getElementById("descricao").value;
+            const forma = document.getElementById("forma").value;
+            const local = document.getElementById("local").value;
+            const dataFmt = document.getElementById("data").value.split("-").reverse().join("/");
+
+            // Layout do Recibo
+            pdf.setFillColor(230, 230, 235);
+            pdf.rect(0, 0, 210, 40, 'F');
+            pdf.setFontSize(22);
+            pdf.setTextColor(40);
+            pdf.text("RECIBO DE PAGAMENTO", 105, 25, { align: "center" });
+
+            let y = 60;
+            pdf.setFontSize(12);
+            pdf.setTextColor(0);
+
+            // Valor em destaque
+            pdf.setFont("helvetica", "bold");
+            pdf.text(`VALOR: R$ ${valor}`, 180, y-10, {align: 'right'});
+
+            // Conteúdo
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`Recebi de:`, 20, y);
+            pdf.setFont("helvetica", "bold");
+            pdf.text(`${pagador} (Doc: ${docPagador})`, 50, y);
+            
+            y += 10;
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`A quantia de:`, 20, y);
+            pdf.setFont("helvetica", "bold");
+            pdf.text(`R$ ${valor}`, 50, y);
+
+            y += 15;
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`Referente a:`, 20, y);
+            y += 7;
+            pdf.setFont("helvetica", "italic");
+            const splitDesc = pdf.splitTextToSize(descricao, 160);
+            pdf.text(splitDesc, 25, y);
+            
+            y += (splitDesc.length * 7) + 10;
+
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`Pagamento via: ${forma}`, 20, y);
+            y += 15;
+
+            pdf.text(`${local}, ${dataFmt}`, 20, y);
+            y += 30;
+
+            pdf.setFontSize(10);
+            pdf.setTextColor(100);
+            pdf.text("Declaro que recebi a quantia acima descrita, dando plena e rasa quitação.", 105, y, {align: 'center'});
+            y += 30;
+
+            // Assinatura
+            pdf.setDrawColor(0);
+            pdf.line(60, y, 150, y);
+            y += 5;
+            pdf.setFontSize(12);
+            pdf.setTextColor(0);
+            pdf.setFont("helvetica", "bold");
+            pdf.text(recebedor, 105, y, {align: 'center'});
+            y += 6;
+            pdf.setFont("helvetica", "normal");
+            pdf.setFontSize(10);
+            pdf.text(`CPF/CNPJ: ${docRecebedor}`, 105, y, {align: 'center'});
+
+            resolve(pdf.output('blob'));
+        });
+    }
+</script>
+
+</body>
+</html>

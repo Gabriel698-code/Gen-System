@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordem de Serviço - Gen System</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    :root {
+        --bg-dark: #121214;
+        --card-bg: #202024;
+        --input-bg: #29292e;
+        --text-primary: #e1e1e6;
+        --text-secondary: #a8a8b3;
+        --accent: #8257e5;
+        --accent-hover: #996dff;
+        --border: #323238;
+        --success: #04d361;
+        --danger: #e96379;
+        --warning: #ffcd1e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body { 
+        font-family: 'Segoe UI', sans-serif; 
+        background-color: var(--bg-dark); 
+        color: var(--text-primary); 
+        margin: 0; 
+        padding: 20px; 
+        display: flex; 
+        justify-content: center; 
+        min-height: 100vh;
+    }
+    
+    .container { 
+        width: 100%; 
+        max-width: 800px; 
+        background: var(--card-bg); 
+        padding: 30px; 
+        border-radius: 12px; 
+        border: 1px solid var(--border); 
+        box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
+    }
+    
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+    .header i { font-size: 3rem; color: var(--accent); margin-bottom: 10px; }
+    h1 { margin: 0; font-size: 1.8rem; color: white; }
+    p.subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-top: 5px; }
+
+    .section-box {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .section-title {
+        font-size: 0.9rem;
+        color: var(--accent);
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px; font-weight: 600; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 10px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: white;
+        font-size: 0.95rem;
+        outline: none;
+        transition: 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+    .btn-group { display: flex; gap: 15px; margin-top: 25px; }
+    
+    .btn {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: 0.2s;
+    }
+    
+    .btn-pdf { background: var(--danger); color: white; }
+    .btn-pdf:hover { background: #ff4d4d; }
+    
+    .btn-word { background: #2b579a; color: white; }
+    .btn-word:hover { background: #3b60bf; }
+
+    @media (max-width: 600px) {
+        .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        .btn-group { flex-direction: column; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <i class="fas fa-tools"></i>
+        <h1>Ordem de Serviço (O.S.)</h1>
+        <p class="subtitle">Registro técnico de manutenção e serviços</p>
+    </div>
+
+    <form id="formOS">
+        
+        <div class="section-box">
+            <div class="section-title"><i class="fas fa-user"></i> Cliente</div>
+            <div class="grid-2">
+                <div>
+                    <label>Nome do Cliente</label>
+                    <input id="cliente" placeholder="Ex: João da Silva">
+                </div>
+                <div>
+                    <label>Contato</label>
+                    <input id="contato" placeholder="Tel / Email">
+                </div>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <div class="section-title"><i class="fas fa-laptop"></i> Equipamento</div>
+            <div class="grid-3">
+                <div>
+                    <label>Equipamento / Modelo</label>
+                    <input id="equipamento" placeholder="Ex: Notebook Dell">
+                </div>
+                <div>
+                    <label>Nº Série / Placa</label>
+                    <input id="serial" placeholder="XYZ-1234">
+                </div>
+                <div>
+                    <label>Prioridade</label>
+                    <select id="prioridade">
+                        <option>Normal</option>
+                        <option>Urgente</option>
+                        <option>Garantia</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <div class="section-title"><i class="fas fa-stethoscope"></i> Diagnóstico</div>
+            <div class="grid-2">
+                <div>
+                    <label>Defeito Relatado</label>
+                    <textarea id="defeito" rows="3" placeholder="O que o cliente disse?"></textarea>
+                </div>
+                <div>
+                    <label>Laudo Técnico</label>
+                    <textarea id="laudo" rows="3" placeholder="Análise técnica..."></textarea>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <label>Serviços Executados</label>
+                <textarea id="servicos" rows="2" placeholder="O que foi feito?"></textarea>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div>
+                <label>Data Entrada</label>
+                <input id="data" type="date">
+            </div>
+            <div>
+                <label>Status</label>
+                <select id="status">
+                    <option>Em Análise</option>
+                    <option>Aguardando Peça</option>
+                    <option>Aprovado</option>
+                    <option>Concluído</option>
+                </select>
+            </div>
+            <div>
+                <label>Valor Total (R$)</label>
+                <input id="valor" type="number" step="0.01" placeholder="0.00" style="color: var(--success); font-weight: bold; font-size: 1.1rem;">
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button type="button" onclick="gerar('pdf')" class="btn btn-pdf">
+                <i class="fas fa-file-pdf"></i> Gerar PDF
+            </button>
+            <button type="button" onclick="gerar('word')" class="btn btn-word">
+                <i class="fas fa-file-word"></i> Gerar Word
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const session_id = params.get('session_id') || 'demo';
+    document.getElementById('data').valueAsDate = new Date();
+
+    async function gerar(formato) {
+        // Encontra o botão clicado para dar feedback visual
+        const btn = event.target.closest('button');
+        const txtOriginal = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+        btn.disabled = true;
+
+        const dados = {
+            session_id: session_id,
+            tipo: "os",
+            formato: formato, 
+            dados: {
+                cliente: document.getElementById('cliente').value,
+                contato: document.getElementById('contato').value,
+                equipamento: document.getElementById('equipamento').value,
+                serial: document.getElementById('serial').value,
+                prioridade: document.getElementById('prioridade').value,
+                defeito: document.getElementById('defeito').value,
+                laudo: document.getElementById('laudo').value,
+                servicos: document.getElementById('servicos').value,
+                data: document.getElementById('data').value,
+                status: document.getElementById('status').value,
+                valor: document.getElementById('valor').value
+            }
+        };
+
+        try {
+            const res = await fetch('/gerar_doc_form', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(dados)
+            });
+            const json = await res.json();
+            
+            if(json.link) window.location.href = json.link;
+            else alert('Erro: ' + (json.erro || 'Desconhecido'));
+            
+        } catch(err) {
+            alert('Erro de conexão.');
+            console.error(err);
+        }
+
+        btn.innerHTML = txtOriginal;
+        btn.disabled = false;
+    }
+</script>
+</body>
+</html>

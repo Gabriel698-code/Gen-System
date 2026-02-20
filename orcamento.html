@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orçamento - Gen System</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💲</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --bg-dark: #121214;
+        --card-bg: #202024;
+        --input-bg: #29292e;
+        --text-primary: #e1e1e6;
+        --text-secondary: #a8a8b3;
+        --accent: #8257e5;
+        --accent-hover: #996dff;
+        --border: #323238;
+        --success: #04d361;
+        --danger: #e96379;
+    }
+
+    body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: var(--text-primary); margin: 0; padding: 20px; display: flex; justify-content: center; }
+    
+    .container { max-width: 900px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 6px 30px rgba(0,0,0,0.5); }
+    
+    h1 { text-align: center; color: white; margin-bottom: 5px; font-size: 1.5rem; }
+    h1 i { color: var(--accent); margin-right: 10px; }
+    p.sub { text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 0.9rem; }
+    
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    
+    label { font-weight: 600; margin-top: 15px; display: block; font-size: 0.85rem; color: var(--text-secondary); }
+    
+    input, textarea, select { 
+        width: 100%; padding: 10px; margin-top: 5px; 
+        background: var(--input-bg); border: 1px solid var(--border); 
+        border-radius: 6px; color: white; font-size: 1rem; outline: none; box-sizing: border-box; 
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    
+    .itens-grid { display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: 10px; align-items: end; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border-bottom: 1px solid var(--border); padding: 10px; text-align: left; font-size: 0.9rem; }
+    th { color: var(--text-secondary); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+    
+    .btn-add { background: var(--success); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-remove { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+    .btn-remove:hover { background: var(--danger); color: white; }
+    
+    .total-row { text-align: right; font-size: 1.2rem; font-weight: bold; margin-top: 20px; color: var(--accent); border-top: 1px solid var(--border); padding-top: 15px; }
+    
+    .btn-final { margin-top: 20px; width: 100%; padding: 15px; font-size: 1rem; border: none; border-radius: 8px; background: var(--accent); color: white; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-final:hover { background: var(--accent-hover); }
+    .btn-note { background: transparent; border: 1px dashed var(--text-secondary); color: var(--text-secondary); margin-top: 10px; }
+    .btn-note:hover { border-color: var(--text-primary); color: var(--text-primary); }
+    
+    .loading { opacity: 0.7; cursor: not-allowed; }
+    hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
+    h3 { font-size: 1.1rem; color: white; border-left: 4px solid var(--accent); padding-left: 10px; margin-top: 30px; }
+
+    @media (max-width: 600px) {
+        .grid, .itens-grid { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1><i class="fas fa-file-invoice-dollar"></i> Orçamento Inteligente</h1>
+    <p class="sub">Gera PDF, salva no histórico e alimenta sua Dashboard.</p>
+
+    <div class="grid">
+      <div>
+        <label>Prestador (Sua Empresa) *</label>
+        <input id="prestador" placeholder="Nome da sua empresa">
+        <label>CNPJ do Prestador</label>
+        <input id="docPrestador" placeholder="00.000.000/0000-00">
+      </div>
+      <div>
+        <label>Cliente (Tomador) *</label>
+        <input id="cliente" placeholder="Nome do Cliente">
+        <label>CPF / CNPJ do Cliente</label>
+        <input id="docCliente" placeholder="Documento do cliente">
+      </div>
+    </div>
+
+    <label>Validade da Proposta</label>
+    <select id="validade">
+      <option value="7">7 dias</option>
+      <option value="15">15 dias</option>
+      <option value="30" selected>30 dias</option>
+      <option value="60">60 dias</option>
+    </select>
+
+    <h3>Itens / Serviços</h3>
+    <div class="itens-grid">
+      <div><label>Descrição</label><input id="itemDesc" placeholder="Ex: Criação de Site"></div>
+      <div><label>Qtd</label><input id="itemQtd" type="number" min="1" value="1"></div>
+      <div><label>Unit. (R$)</label><input id="itemValor" placeholder="0,00"></div>
+      <button class="btn-add" onclick="adicionarItem()"><i class="fas fa-plus"></i></button>
+    </div>
+
+    <table>
+        <thead>
+            <tr><th>Descrição</th><th width="60">Qtd</th><th width="100">Unit.</th><th width="100">Total</th><th width="50"></th></tr>
+        </thead>
+        <tbody id="tabelaItens"></tbody>
+    </table>
+
+    <div class="total-row" id="totalGeral">Total: R$ 0,00</div>
+
+    <label>Observações / Condições de Pagamento</label>
+    <textarea id="obs" rows="3" placeholder="Ex: Pagamento 50% na entrada..."></textarea>
+
+    <hr>
+
+    <h3 style="font-size: 0.9rem; color: var(--text-secondary); border: none; padding: 0;">Opcional: Dados Fiscais (Apenas para espelho de Nota)</h3>
+    <div class="grid">
+        <div><label>Cód. Serviço (LC 116)</label><input id="codigoServico" placeholder="1.07"></div>
+        <div><label>Alíquota ISS (%)</label><input id="aliquotaISS" type="number" step="0.01" placeholder="5"></div>
+    </div>
+
+    <button id="btnPdf" class="btn-final" onclick="gerarOrcamento()"><i class="fas fa-file-pdf"></i> Gerar Orçamento (PDF)</button>
+    </div>
+
+<script>
+    let itens = [];
+    const params = new URLSearchParams(window.location.search);
+    const session_id = params.get('session_id') || 'sessao_manual';
+
+    const moeda = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    function adicionarItem() {
+        const desc = document.getElementById('itemDesc');
+        const qtd = document.getElementById('itemQtd');
+        const valor = document.getElementById('itemValor');
+
+        const d = desc.value.trim();
+        const q = Number(qtd.value);
+        // Corrige formato 1.000,00 para 1000.00
+        let vRaw = valor.value.replace('.', '').replace(',', '.');
+        const v = Number(vRaw);
+
+        if (!d || q <= 0 || isNaN(v) || v <= 0) return alert("Preencha os dados do item corretamente.");
+
+        itens.push({ desc: d, qtd: q, valor: v, total: q * v });
+        atualizarTabela();
+        
+        desc.value = ''; qtd.value = 1; valor.value = '';
+        desc.focus();
+    }
+
+    function removerItem(i) {
+        itens.splice(i, 1);
+        atualizarTabela();
+    }
+
+    function atualizarTabela() {
+        const tbody = document.getElementById('tabelaItens');
+        tbody.innerHTML = '';
+        let total = 0;
+        
+        itens.forEach((it, i) => {
+            total += it.total;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${it.desc}</td>
+                    <td>${it.qtd}</td>
+                    <td>${moeda(it.valor)}</td>
+                    <td>${moeda(it.total)}</td>
+                    <td><button class="btn-remove" onclick="removerItem(${i})"><i class="fas fa-trash"></i></button></td>
+                </tr>
+            `;
+        });
+        document.getElementById('totalGeral').innerText = `Total: ${moeda(total)}`;
+        return total;
+    }
+
+    // --- INTEGRAÇÃO COM BACKEND ---
+    async function salvarNoBancoDados(total) {
+        const dados = {
+            session_id: session_id,
+            cliente_nome: document.getElementById('cliente').value,
+            cliente_doc: document.getElementById('docCliente').value,
+            valor_total: total,
+            validade: document.getElementById('validade').value + " dias",
+            itens_json: JSON.stringify(itens)
+        };
+
+        try {
+            await fetch('/salvar_orcamento', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(dados)
+            });
+            console.log("Orçamento registrado na Dashboard.");
+        } catch (e) {
+            console.error("Erro ao salvar dados:", e);
+        }
+    }
+
+    async function enviarPDFParaServidor(blob, nomeArquivo) {
+        const formData = new FormData();
+        formData.append('file', blob, nomeArquivo);
+        try {
+            await fetch(`/upload_doc/${session_id}`, { method: 'POST', body: formData });
+            console.log("Arquivo salvo na pasta documentos.");
+        } catch (e) { console.error("Erro upload:", e); }
+    }
+
+    async function gerarOrcamento() {
+        const prestador = document.getElementById('prestador').value;
+        const cliente = document.getElementById('cliente').value;
+        
+        if (!prestador || !cliente || itens.length === 0) return alert("Preencha Prestador, Cliente e adicione pelo menos um item.");
+
+        const btn = document.getElementById('btnPdf');
+        const txtOrig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        btn.classList.add('loading');
+
+        try {
+            const total = itens.reduce((acc, it) => acc + it.total, 0);
+            
+            // 1. Gera PDF no Navegador (jsPDF)
+            await gerarPDFLocal("ORÇAMENTO", true, total);
+            
+            // 2. Salva Dados na Dashboard
+            await salvarNoBancoDados(total);
+
+        } catch (erro) {
+            alert("Erro ao gerar: " + erro);
+        }
+
+        btn.innerHTML = txtOrig;
+        btn.classList.remove('loading');
+    }
+
+    async function gerarPDFLocal(titulo, isOrcamento, total) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const prestador = document.getElementById('prestador').value;
+        const docPrestador = document.getElementById('docPrestador').value;
+        const cliente = document.getElementById('cliente').value;
+        const docCliente = document.getElementById('docCliente').value;
+        const obs = document.getElementById('obs').value;
+
+        let y = 20;
+        
+        // Cabeçalho
+        doc.setFontSize(18);
+        doc.setTextColor(40, 40, 40);
+        doc.text(titulo, 105, y, { align: "center" });
+        
+        y += 10;
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Data: ${new Date().toLocaleDateString()} | Validade: ${document.getElementById('validade').value} dias`, 105, y, { align: "center" });
+
+        y += 15;
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("PRESTADOR:", 20, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${prestador} (${docPrestador})`, 50, y);
+
+        y += 7;
+        doc.setFont("helvetica", "bold");
+        doc.text("CLIENTE:", 20, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${cliente} (${docCliente})`, 50, y);
+
+        y += 15;
+        
+        // Cabeçalho Tabela
+        doc.setFillColor(230, 230, 230);
+        doc.rect(20, y, 170, 8, 'F');
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text("DESCRIÇÃO", 22, y+5);
+        doc.text("QTD", 110, y+5);
+        doc.text("UNIT", 130, y+5);
+        doc.text("TOTAL", 160, y+5);
+        
+        y += 10;
+        doc.setFont("helvetica", "normal");
+        
+        // Itens
+        itens.forEach(it => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            doc.text(it.desc, 22, y);
+            doc.text(it.qtd.toString(), 110, y);
+            doc.text(it.valor.toFixed(2), 130, y);
+            doc.text(it.total.toFixed(2), 160, y);
+            y += 7;
+            doc.setDrawColor(200);
+            doc.line(20, y-2, 190, y-2); // Linha separadora
+        });
+
+        y += 5;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text(`TOTAL GERAL: ${moeda(total)}`, 160, y, { align: "right" });
+
+        if (obs) {
+            y += 15;
+            doc.setFontSize(10);
+            doc.text("Observações:", 20, y);
+            y += 5;
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            const splitObs = doc.splitTextToSize(obs, 170);
+            doc.text(splitObs, 20, y);
+        }
+
+        // Salvar e Upload
+        const nomeArquivo = `Orcamento_${Date.now()}.pdf`;
+        const pdfBlob = doc.output('blob');
+        
+        await enviarPDFParaServidor(pdfBlob, nomeArquivo);
+        doc.save(nomeArquivo);
+    }
+</script>
+</body>
+</html>

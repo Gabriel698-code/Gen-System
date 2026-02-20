@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Declaração de Conteúdo - Gen System</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    :root {
+        --bg-dark: #121214;
+        --sidebar-dark: #202024;
+        --input-bg: #29292e;
+        --text-primary: #e1e1e6;
+        --text-secondary: #a8a8b3;
+        --accent: #8257e5;
+        --accent-hover: #996dff;
+        --border: #323238;
+        --danger: #e96379;
+        --success: #04d361;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: "Segoe UI", Roboto, Arial, sans-serif;
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+    .container {
+        width: 100%;
+        max-width: 920px;
+        background: var(--sidebar-dark);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: 0 6px 30px rgba(0,0,0,0.5);
+        padding: 26px;
+    }
+    .header {
+        text-align: center;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 18px;
+    }
+    .header i { font-size: 2.5rem; color: var(--accent); margin-bottom: 10px; }
+    h1 { margin: 0; font-size: 22px; color: white; }
+    p.lead { margin: 6px 0 0; color: var(--text-secondary); font-size: 0.9rem; }
+
+    .section-title {
+        margin-top: 25px;
+        margin-bottom: 15px;
+        background: rgba(130, 87, 229, 0.1);
+        color: var(--accent);
+        font-weight: 700;
+        padding: 10px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        border-left: 4px solid var(--accent);
+    }
+
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: var(--text-secondary); }
+    .row { display: flex; gap: 15px; margin-bottom: 10px; }
+    .col { flex: 1; }
+    .w-20 { width: 20%; }
+    .w-30 { width: 30%; }
+    
+    input[type="text"], input[type="number"], select {
+        width: 100%;
+        padding: 10px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: white;
+        outline: none;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+    
+    /* Item Box */
+    .item-box {
+        border: 1px solid var(--border);
+        background: #252529;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        position: relative;
+    }
+    .btn-remove {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        background: transparent;
+        color: var(--danger);
+        border: 1px solid var(--danger);
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: 0.2s;
+    }
+    .btn-remove:hover { background: var(--danger); color: white; }
+
+    .btn-add {
+        width: 100%;
+        background: transparent;
+        color: var(--success);
+        border: 1px dashed var(--success);
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        margin-top: 15px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
+    .btn-add:hover { background: rgba(4, 211, 97, 0.1); }
+
+    .format-selector {
+        display: flex; 
+        gap: 20px; 
+        justify-content: center; 
+        padding: 15px; 
+        background: var(--input-bg); 
+        border-radius: 8px; 
+        margin-top: 20px;
+        border: 1px solid var(--border);
+    }
+    .radio-label { cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: normal; color: white; }
+
+    .actions { margin-top: 20px; }
+    .btn-primary {
+        width: 100%;
+        padding: 16px;
+        background: var(--accent);
+        color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 1.1rem; cursor: pointer;
+        transition: 0.2s;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result {
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(4, 211, 97, 0.1);
+        border: 1px solid var(--success);
+        border-radius: 8px;
+        display: none;
+        text-align: center;
+        color: var(--success);
+    }
+
+    .download-link {
+        display: inline-block;
+        margin: 10px 5px;
+        padding: 10px 20px;
+        background: var(--accent);
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .download-link:hover { background: var(--accent-hover); }
+
+    .error {
+        color: white;
+        background-color: var(--danger);
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        margin-top: 15px;
+        text-align: center;
+    }
+
+    /* Responsivo */
+    @media (max-width: 760px) {
+        .row { flex-direction: column; gap: 10px; }
+        .w-20, .w-30 { width: 100%; }
+        .container { padding: 15px; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <i class="fas fa-box-open"></i>
+        <h1>Declaração de Conteúdo</h1>
+        <p class="lead">Preencha os dados oficiais para envio.</p>
+    </div>
+
+    <form id="form-declaracao" autocomplete="off">
+        <div class="section-title">1. Identificação do Remetente</div>
+
+        <div class="row">
+            <div class="col">
+                <label for="rem_nome">Nome completo / Razão Social</label>
+                <input id="rem_nome" type="text" required placeholder="Ex: Sua Empresa">
+            </div>
+            <div class="w-30">
+                <label>Documento</label>
+                <div style="display:flex; gap:15px; margin-bottom:5px; font-size:0.9em;">
+                    <label class="radio-label"><input type="radio" name="rem_tipo_doc" value="cpf" checked onchange="setupDocField('rem_doc', 'cpf')"> CPF</label>
+                    <label class="radio-label"><input type="radio" name="rem_tipo_doc" value="cnpj" onchange="setupDocField('rem_doc', 'cnpj')"> CNPJ</label>
+                </div>
+                <input id="rem_doc" type="text" placeholder="000.000.000-00" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="rem_logradouro">Logradouro (Rua / Av)</label>
+                <input id="rem_logradouro" type="text" required>
+            </div>
+            <div class="w-20">
+                <label for="rem_num">Número</label>
+                <input id="rem_num" type="text" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="rem_comp">Complemento</label>
+                <input id="rem_comp" type="text" placeholder="Apto / Sala">
+            </div>
+            <div class="w-30">
+                <label for="rem_bairro">Bairro</label>
+                <input id="rem_bairro" type="text" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="rem_cidade">Cidade</label>
+                <input id="rem_cidade" type="text" required>
+            </div>
+            <div class="w-20">
+                <label for="rem_uf">UF</label>
+                <input id="rem_uf" type="text" maxlength="2" style="text-transform:uppercase" placeholder="SP" required>
+            </div>
+            <div class="w-30">
+                <label for="rem_cep">CEP</label>
+                <input id="rem_cep" type="text" maxlength="9" placeholder="00000-000" oninput="maskCEP(this)" required>
+            </div>
+        </div>
+
+        <div class="section-title">2. Identificação do Destinatário</div>
+
+        <div class="row">
+            <div class="col">
+                <label for="dest_nome">Nome completo</label>
+                <input id="dest_nome" type="text" required>
+            </div>
+            <div class="w-30">
+                <label>Documento (Opcional)</label>
+                <div style="display:flex; gap:15px; margin-bottom:5px; font-size:0.9em;">
+                    <label class="radio-label"><input type="radio" name="dest_tipo_doc" value="cpf" checked onchange="setupDocField('dest_doc', 'cpf')"> CPF</label>
+                    <label class="radio-label"><input type="radio" name="dest_tipo_doc" value="cnpj" onchange="setupDocField('dest_doc', 'cnpj')"> CNPJ</label>
+                </div>
+                <input id="dest_doc" type="text" placeholder="000.000.000-00">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="dest_logradouro">Logradouro (Rua / Av)</label>
+                <input id="dest_logradouro" type="text" required>
+            </div>
+            <div class="w-20">
+                <label for="dest_num">Número</label>
+                <input id="dest_num" type="text" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="dest_comp">Complemento</label>
+                <input id="dest_comp" type="text" placeholder="Apto / Sala">
+            </div>
+            <div class="w-30">
+                <label for="dest_bairro">Bairro</label>
+                <input id="dest_bairro" type="text" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label for="dest_cidade">Cidade</label>
+                <input id="dest_cidade" type="text" required>
+            </div>
+            <div class="w-20">
+                <label for="dest_uf">UF</label>
+                <input id="dest_uf" type="text" maxlength="2" style="text-transform:uppercase" placeholder="SP" required>
+            </div>
+            <div class="w-30">
+                <label for="dest_cep">CEP</label>
+                <input id="dest_cep" type="text" maxlength="9" placeholder="00000-000" oninput="maskCEP(this)" required>
+            </div>
+        </div>
+
+        <div class="section-title">3. Itens declarados</div>
+        <div id="itens-container">
+            <div class="item-box">
+                <button type="button" class="btn-remove" onclick="removeItem(this)" title="Remover item" style="display:none;">Remover</button>
+                <div class="row">
+                    <div class="col">
+                        <label>Descrição do conteúdo</label>
+                        <input class="item_desc" type="text" required placeholder="Ex: Camiseta">
+                    </div>
+                    <div class="w-20">
+                        <label>Qtd</label>
+                        <input class="item_qtd" type="number" min="1" value="1" required>
+                    </div>
+                    <div class="w-30">
+                        <label>Valor unit. (R$)</label>
+                        <input class="item_valor" type="text" required placeholder="0,00" oninput="maskMoney(this)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn-add" onclick="addItem()">+ Adicionar outro item</button>
+
+        <div class="section-title">Formato do documento</div>
+        <div class="format-selector">
+            <label class="radio-label"><input type="radio" name="formato" value="pdf" checked> 📄 PDF (Padrão)</label>
+            <label class="radio-label"><input type="radio" name="formato" value="word"> 📝 Word (Editável)</label>
+        </div>
+
+        <div class="actions">
+            <button type="submit" id="btn-gerar" class="btn-primary">Emitir Declaração</button>
+        </div>
+
+        <div id="msg-error" class="error" role="alert" style="display:none"></div>
+    </form>
+
+    <div id="result" class="result">
+        <h3>✅ Documento Pronto!</h3>
+        <div id="downloads"></div>
+        <p style="margin-top:15px; font-size:0.9em; color: var(--text-secondary);">Você pode gerar o outro formato clicando abaixo:</p>
+    </div>
+</div>
+
+<script>
+const onlyDigits = (s) => s.replace(/\D/g,'');
+
+function maskCEP(input){
+    let v = onlyDigits(input.value).slice(0,8);
+    if(v.length>5) v = v.replace(/^(\d{5})(\d)/,'$1-$2');
+    input.value = v;
+}
+
+function setupDocField(idInput, tipo) {
+    const input = document.getElementById(idInput);
+    input.value = ""; 
+    if (tipo === 'cpf') { input.placeholder = "000.000.000-00"; input.maxLength = 14; } 
+    else { input.placeholder = "00.000.000/0000-00"; input.maxLength = 18; }
+    input.focus();
+}
+
+function aplicarMascaraDoc(input, tipo) {
+    let v = onlyDigits(input.value);
+    if (tipo === 'cpf') {
+        v = v.slice(0, 11);
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d)/, '$1.$2');
+        v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+        v = v.slice(0, 14);
+        v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        v = v.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+    input.value = v;
+}
+
+document.getElementById('rem_doc').addEventListener('input', (e) => {
+    const tipo = document.querySelector('input[name="rem_tipo_doc"]:checked').value;
+    aplicarMascaraDoc(e.target, tipo);
+});
+
+document.getElementById('dest_doc').addEventListener('input', (e) => {
+    const tipo = document.querySelector('input[name="dest_tipo_doc"]:checked').value;
+    aplicarMascaraDoc(e.target, tipo);
+});
+
+function maskMoney(input){
+    let v = onlyDigits(input.value);
+    if(!v) { input.value = ""; return; }
+    v = (Number(v)/100).toFixed(2).replace('.',',');
+    v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g,'$1.');
+    input.value = v;
+}
+
+function validarCPF(cpf) {
+    cpf = onlyDigits(cpf);
+    if(cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+    let soma = 0, resto;
+    for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
+    soma = 0;
+    for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+    resto = (soma * 10) % 11;
+    if ((resto === 10) || (resto === 11)) resto = 0;
+    if (resto !== parseInt(cpf.substring(10, 11))) return false;
+    return true;
+}
+
+function validarCNPJ(cnpj) {
+    cnpj = onlyDigits(cnpj);
+    if(cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+    let tamanho = cnpj.length - 2;
+    let numeros = cnpj.substring(0,tamanho);
+    let digitos = cnpj.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+        soma += numeros.charAt(tamanho - i) * pos--;
+        if (pos < 2) pos = 9;
+    }
+    let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+    if (resultado != digitos.charAt(0)) return false;
+    tamanho = tamanho + 1;
+    numeros = cnpj.substring(0,tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+        soma += numeros.charAt(tamanho - i) * pos--;
+        if (pos < 2) pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+    if (resultado != digitos.charAt(1)) return false;
+    return true;
+}
+
+function addItem(){
+    const container = document.getElementById('itens-container');
+    const div = document.createElement('div');
+    div.className = 'item-box';
+    div.innerHTML = `
+        <button type="button" class="btn-remove" onclick="removeItem(this)">Remover</button>
+        <div class="row">
+            <div class="col">
+                <label>Descrição:</label>
+                <input class="item_desc" type="text" required>
+            </div>
+            <div class="w-20">
+                <label>Qtd</label>
+                <input class="item_qtd" type="number" min="1" value="1" required>
+            </div>
+            <div class="w-30">
+                <label>Valor (R$)</label>
+                <input class="item_valor" type="text" required placeholder="0,00" oninput="maskMoney(this)">
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+    atualizarBotoesRemover();
+}
+
+function removeItem(btn){
+    btn.closest('.item-box').remove();
+    atualizarBotoesRemover();
+}
+
+function atualizarBotoesRemover(){
+    const itens = document.querySelectorAll('.item-box');
+    itens.forEach(item => {
+        const btn = item.querySelector('.btn-remove');
+        if (itens.length === 1) btn.style.display = 'none';
+        else btn.style.display = 'block';
+    });
+}
+
+const endpoint = "/gerar_doc_form";
+
+document.getElementById('form-declaracao').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const errorBox = document.getElementById('msg-error');
+    errorBox.style.display = 'none';
+    
+    const btn = document.getElementById('btn-gerar');
+    const btnOriginalText = btn.innerText;
+    btn.disabled = true; btn.innerText = 'Gerando...';
+
+    try {
+        const remDoc = document.getElementById('rem_doc').value;
+        const remTipo = document.querySelector('input[name="rem_tipo_doc"]:checked').value;
+        if (remTipo === 'cpf' && !validarCPF(remDoc)) throw new Error("CPF do Remetente inválido!");
+        if (remTipo === 'cnpj' && !validarCNPJ(remDoc)) throw new Error("CNPJ do Remetente inválido!");
+
+        const destDoc = document.getElementById('dest_doc').value;
+        const destTipo = document.querySelector('input[name="dest_tipo_doc"]:checked').value;
+        if (destDoc) {
+            if (destTipo === 'cpf' && !validarCPF(destDoc)) throw new Error("CPF do Destinatário inválido!");
+            if (destTipo === 'cnpj' && !validarCNPJ(destDoc)) throw new Error("CNPJ do Destinatário inválido!");
+        }
+
+        const getVal = (id) => document.getElementById(id).value;
+        const formato = document.querySelector('input[name="formato"]:checked').value;
+        const sessionId = new URLSearchParams(window.location.search).get('session_id') || 'anon';
+
+        const items = [];
+        document.querySelectorAll('.item-box').forEach(box => {
+            const desc = box.querySelector('.item_desc').value;
+            const qtd = box.querySelector('.item_qtd').value;
+            const valor = box.querySelector('.item_valor').value.replace(/\./g,'').replace(',','.');
+            items.push({ item: desc, qtd: Number(qtd), custo: Number(valor) });
+        });
+
+        const payload = {
+            session_id: sessionId,
+            tipo: "declaracao",
+            formato: formato,
+            dados: {
+                remetente_nome: getVal('rem_nome'),
+                remetente_doc: getVal('rem_doc'),
+                destinatario_nome: getVal('dest_nome'),
+                destinatario_doc: getVal('dest_doc'),
+                // Dados extras sendo enviados (pronto para upgrade futuro)
+                remetente_end: `${getVal('rem_logradouro')}, ${getVal('rem_num')}`,
+                destinatario_end: `${getVal('dest_logradouro')}, ${getVal('dest_num')}`,
+                lista_itens: items
+            }
+        };
+
+        const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const json = await resp.json();
+
+        if(json.link){
+            document.getElementById('form-declaracao').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            
+            const downloads = document.getElementById('downloads');
+            downloads.innerHTML = `<a href="${json.link}" class="download-link" target="_blank">BAIXAR ${formato.toUpperCase()}</a>`;
+            
+            const outroFormato = formato === 'pdf' ? 'word' : 'pdf';
+            const btnExtra = document.createElement('a');
+            btnExtra.className = 'download-link';
+            btnExtra.style.backgroundColor = '#323238'; 
+            btnExtra.innerText = `GERAR EM ${outroFormato.toUpperCase()}`;
+            btnExtra.href = "#";
+            btnExtra.onclick = async (ev) => {
+                ev.preventDefault();
+                btnExtra.innerText = "Gerando...";
+                payload.formato = outroFormato;
+                const resp2 = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const json2 = await resp2.json();
+                if(json2.link) window.open(json2.link, '_blank');
+                btnExtra.innerText = `BAIXAR ${outroFormato.toUpperCase()}`;
+            };
+            downloads.appendChild(btnExtra);
+
+        } else {
+            throw new Error(json.erro || 'Erro desconhecido.');
+        }
+
+    } catch(err) {
+        errorBox.style.display = 'block';
+        errorBox.innerText = err.message;
+        btn.disabled = false; btn.innerText = btnOriginalText;
+    }
+});
+</script>
+</body>
+</html>
