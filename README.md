@@ -67,7 +67,7 @@ Para executar o Gen-System na sua máquina, é necessário ter o **Python 3.10+*
 ```bash
 git clone https://github.com/SEU_USUARIO/gen-system.git
 cd gen-system
-```bash
+
 pip install fastapi uvicorn pydantic pywebview streamlit google-generativeai fpdf python-docx openpyxl pandas PyPDF2 duckduckgo_search
 
 python main.py
