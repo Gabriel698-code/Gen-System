@@ -38,3 +38,33 @@ Para executar o Gen-System na sua máquina, é necessário ter o **Python 3.10+*
 ```bash
 git clone [https://github.com/SEU_USUARIO/gen-system.git](https://github.com/SEU_USUARIO/gen-system.git)
 cd gen-system
+
+pip install fastapi uvicorn pydantic pywebview streamlit google-generativeai fpdf python-docx openpyxl pandas PyPDF2 duckduckgo_search
+
+python main.py
+
+🔑 Primeiro Acesso e Ativação
+O Gen-System possui uma arquitetura segura (Local-first). Ao rodar o comando python main.py pela primeira vez, a janela do aplicativo será aberta apresentando a Tela de Ativação.
+
+Para usar o sistema:
+
+Clique no link fornecido na tela para gerar sua chave gratuita do Google Gemini (Google AI Studio).
+
+Cole a chave no campo indicado.
+
+Clique em Ativar Sistema.
+
+O Gen-System validará a chave em tempo real e criará o arquivo user_config.json de forma segura e criptografada, liberando o acesso a todas as funcionalidades.
+
+💡 Principais Funcionalidades
+💬 Consultoria de IA Especializada: Modos com foco em Análise Financeira, Jurídica, Marketing e Viabilidade de Negócios.
+
+🧾 Emissor de NF-e e NFC-e: Formulário completo e offline-first para geração de XML validado no padrão SEFAZ, com modais interativos para CFOP/NCM/UN.
+
+📄 Geração Autônoma de Documentos: Criação de contratos, recibos e ordens de serviço (PDF/Word) a partir de comandos de texto.
+
+📊 Planilhas Dinâmicas: Cria controles de estoque, precificação e fluxo de caixa em .xlsx.
+
+👁️ Análise Multimodal: Capacidade de ler e interpretar documentos Word, PDFs, planilhas Excel e imagens submetidas no chat.
+
+🌐 Deep Search Integrado: O sistema faz buscas na internet em tempo real para consultar leis atualizadas e cotações financeiras antes de formular a resposta.
