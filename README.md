@@ -59,6 +59,11 @@ O Gen-System validará a chave em tempo real e criará o arquivo `user_config.js
 Para executar o Gen-System na sua máquina, é necessário ter o **Python 3.10+** instalado.
 
 **1. Clone o repositório:**
+
+**2. Instale as dependências:**
+
+**3. Inicie o sistema:**
+
 ```bash
 git clone https://github.com/SEU_USUARIO/gen-system.git
 cd gen-system
