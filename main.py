@@ -172,6 +172,14 @@ async def read_index_explicit():
     # Rota explícita para o index.html
     return FileResponse(os.path.join(CAMINHO_BASE, 'index.html'))
 
+# NOVA ROTA DINÂMICA: Permite abrir nfe_simples.html, contrato.html, etc.
+@app.get("/{nome_arquivo}.html")
+async def servir_paginas_html(nome_arquivo: str):
+    caminho = os.path.join(CAMINHO_BASE, f"{nome_arquivo}.html")
+    if os.path.exists(caminho):
+        return FileResponse(caminho)
+    raise HTTPException(status_code=404, detail="Página não encontrada")
+
 # Monta a pasta estática para servir CSS, JS, Imagens se houver
 app.mount("/static", StaticFiles(directory=CAMINHO_BASE), name="static")
 
@@ -258,7 +266,7 @@ def motor_decisao(texto_usuario: str, contexto: dict | None = None):
     - subtipo: contrato | declaracao | estoque | caixa | grafico | simples
     """
 
-    texto = texto_usuario.lower()
+    texto = texto_usuario.lower().strip()
     contexto = contexto or {}
 
     resultado = {
@@ -268,70 +276,60 @@ def motor_decisao(texto_usuario: str, contexto: dict | None = None):
         "gerar_arquivo": False
     }
 
-    # -------------------------------
-    # AÇÕES EXPLÍCITAS (SEM ANULAR CONVERSA)
-    # -------------------------------
-    if any(p in texto for p in ["crie", "gere", "faça", "monte"]):
-        resultado["gerar_arquivo"] = True
+    # 1. Identifica comandos explícitos de criação
+    verbos_criacao = ["crie", "gere", "faça", "fazer", "monte", "criar", "gerar", "montar", "quero", "preciso"]
+    quer_criar = any(v in texto.split() for v in verbos_criacao)
+
+    # 2. Identifica se é apenas uma pergunta exploratória
+    eh_pergunta = "?" in texto or texto.startswith(
+        ("como", "o que", "qual", "quais", "quando", "por que", "porque", "voce", "você")
+    )
+
+    # REGRA DE OURO: Se é uma pergunta e não tem verbo de comando, mantém como conversa!
+    if eh_pergunta and not quer_criar:
+        return resultado
 
     # -------------------------------
     # PLANILHAS
     # -------------------------------
     if any(p in texto for p in ["planilha", "excel"]):
-        resultado["tipo_acao"] = "gerar_planilha"
-        resultado["gerar_arquivo"] = True
-        resultado["responder"] = False
+        if quer_criar or not eh_pergunta:
+            resultado["tipo_acao"] = "gerar_planilha"
+            resultado["gerar_arquivo"] = True
+            resultado["responder"] = False
 
-        if "estoque" in texto:
-            resultado["subtipo"] = "estoque"
-        elif "caixa" in texto or "fluxo" in texto:
-            resultado["subtipo"] = "caixa"
-        elif "preço" in texto or "precificação" in texto:
-            resultado["subtipo"] = "precificacao"
-        elif "gráfico" in texto or "grafico" in texto:
-            resultado["subtipo"] = "grafico"
-        else:
-            resultado["subtipo"] = "simples"
+            if "estoque" in texto:
+                resultado["subtipo"] = "estoque"
+            elif any(p in texto for p in ["caixa", "fluxo"]):
+                resultado["subtipo"] = "caixa"
+            elif any(p in texto for p in ["preço", "precificação", "precificacao"]):
+                resultado["subtipo"] = "precificacao"
+            elif any(p in texto for p in ["gráfico", "grafico"]):
+                resultado["subtipo"] = "grafico"
+            else:
+                resultado["subtipo"] = "simples"
 
     # -------------------------------
     # DOCUMENTOS (WORD / PDF)
     # -------------------------------
-    if any(p in texto for p in [
-        "contrato", "declaração", "declaraçao",
-        "recibo", "orçamento", "orcamento",
-        "ordem de serviço", "os"
-    ]):
-        resultado["tipo_acao"] = "gerar_documento"
-        resultado["gerar_arquivo"] = True
-        resultado["responder"] = False
+    elif any(p in texto for p in ["contrato", "declaração", "declaraçao", "recibo", "orçamento", "orcamento", "ordem de serviço", "os"]):
+        if quer_criar or not eh_pergunta:
+            resultado["tipo_acao"] = "gerar_documento"
+            resultado["gerar_arquivo"] = True
+            resultado["responder"] = False
 
-        if "contrato" in texto:
-            resultado["subtipo"] = "contrato"
-        elif "declara" in texto:
-            resultado["subtipo"] = "declaracao"
-        elif "recibo" in texto:
-            resultado["subtipo"] = "recibo"
-        elif "orçamento" in texto or "orcamento" in texto:
-            resultado["subtipo"] = "orcamento"
-        elif "ordem" in texto or "os" in texto:
-            resultado["subtipo"] = "os"
-
-    # -------------------------------
-    # PERGUNTAS (SÓ SE NÃO HOUVER GERAÇÃO)
-    # -------------------------------
-    if (
-        (texto.endswith("?") or texto.startswith(
-            ("como", "o que", "qual", "quando", "por que", "porque")
-        ))
-        and not resultado["gerar_arquivo"]
-    ):
-        resultado["tipo_acao"] = "conversa"
-        resultado["responder"] = True
-        resultado["gerar_arquivo"] = False
-        resultado["subtipo"] = None
+            if "contrato" in texto:
+                resultado["subtipo"] = "contrato"
+            elif "declara" in texto:
+                resultado["subtipo"] = "declaracao"
+            elif "recibo" in texto:
+                resultado["subtipo"] = "recibo"
+            elif any(p in texto for p in ["orçamento", "orcamento"]):
+                resultado["subtipo"] = "orcamento"
+            elif any(p in texto for p in ["ordem", "os"]):
+                resultado["subtipo"] = "os"
 
     return resultado
-
 
 # ============================================================================
 # 3. PROCESSAMENTO DE ARQUIVOS E IA (ROUTER)
@@ -507,8 +505,11 @@ def executar_decisao_ia(
         else:
             nome = criar_excel_simples(dados, "planilha", session_id)
 
+        # ADICIONADO: Link HTML forçando o download pelo navegador externo
+        link_html = f"<a href='http://127.0.0.1:8000/baixar_doc/{nome}' target='_blank' style='color: #8257e5; font-weight: bold;'>📥 CLIQUE AQUI PARA BAIXAR O ARQUIVO</a>"
+
         return {
-            "resposta_usuario": "📊 Planilha criada com sucesso.",
+            "resposta_usuario": f"📊 **Planilha criada com sucesso!**\n\n{link_html}",
             "arquivo": nome
         }
 
@@ -522,11 +523,18 @@ def executar_decisao_ia(
             nome = criar_word_declaracao(dados, session_id)
         elif subtipo == "os":
             nome = criar_word_os(dados, session_id)
+        elif subtipo == "recibo":
+            nome = criar_pdf("recibo", dados, session_id)
+        elif subtipo == "orcamento":
+            nome = criar_pdf("orcamento", dados, session_id)
         else:
             return {"resposta_usuario": "Tipo de documento não reconhecido."}
 
+        # ADICIONADO: Link HTML forçando o download pelo navegador externo
+        link_html = f"<a href='http://127.0.0.1:8000/baixar_doc/{nome}' target='_blank' style='color: #8257e5; font-weight: bold;'>📄 CLIQUE AQUI PARA BAIXAR O ARQUIVO</a>"
+
         return {
-            "resposta_usuario": "📄 Documento criado com sucesso.",
+            "resposta_usuario": f"📄 **Documento criado com sucesso!**\n\n{link_html}",
             "arquivo": nome
         }
 
@@ -535,7 +543,6 @@ def executar_decisao_ia(
     # -------------------------------
     resposta = gerar_com_router(texto_usuario)
     return {"resposta_usuario": resposta}
-
 # ======================================================================
 # CONSTANTES DE PROMPT (BASE / MODOS ESPECIALIZADOS)
 # ======================================================================
@@ -1377,7 +1384,7 @@ def criar_excel_com_grafico(dados_lista_raw, session_id):
     return nome
 
 
-# =============================================================================
+## =============================================================================
 # 6. ROTAS DA API (ENDPOINTS)
 # =============================================================================
 
@@ -1401,6 +1408,115 @@ def salvar_chave_api(dados: ConfigData):
 @app.get("/verificar_status")
 def verificar_status():
     return {"status": "ativo" if API_KEY_CLIENTE else "pendente"}
+
+
+# ====================================================================
+# ROTA MULTIMODAL: RECEBE ARQUIVOS E IMAGENS DO CHAT
+# ====================================================================
+@app.post("/chat_com_imagem")
+async def chat_com_arquivo_endpoint(
+    session_id: str = Form(...),
+    texto: str = Form("Por favor, analise este arquivo."),
+    arquivo: UploadFile = File(...)
+):
+    """
+    Rota que o frontend chama quando tem um anexo.
+    Processa Excel, Word, PDF como texto e PNG/JPG como imagem visual.
+    """
+    try:
+        # 1. Extrai o conteúdo do arquivo usando sua função nativa
+        resultado_extracao = await ler_arquivo_para_texto(arquivo)
+        
+        prompt_final = texto
+        imagem_bytes = None
+        mime_type = "image/jpeg"
+
+        # 2. Prepara o envio para a IA dependendo do tipo do arquivo
+        if resultado_extracao["tipo"] == "imagem":
+            imagem_bytes = resultado_extracao["conteudo"]
+            mime_type = resultado_extracao["mime"]
+            prompt_final = f"Usuário enviou uma imagem. Comando: {texto}"
+            
+        elif resultado_extracao["tipo"] == "texto":
+            prompt_final = f"O usuário enviou um documento com os seguintes dados extraídos:\n\n{resultado_extracao['conteudo']}\n\nComando do usuário: {texto}"
+            
+        else:
+            return {"resposta_gen": f"⚠️ Não consegui ler o formato deste arquivo. Erro: {resultado_extracao.get('conteudo')}"}
+
+        # 3. Salva no histórico do banco de dados
+        salvar_mensagem(session_id, "user", f"{texto} [Anexo: {arquivo.filename}]")
+
+        # 4. Aciona a IA com o modo Geral para interpretar o documento/imagem
+        prompt_completo = f"""
+        {PROMPTS_MODOS['geral']}
+        
+        AÇÃO SOLICITADA:
+        {prompt_final}
+        """
+        
+        raw_response = gerar_com_router(prompt_completo, imagem_bytes, mime_type)
+        
+        # 5. Limpa a resposta para garantir que o JSON não quebre o chat
+        raw_response = re.sub(r"```json|```", "", raw_response).strip()
+        try:
+            js = json.loads(raw_response)
+            resposta_final = js.get("resposta_usuario", raw_response)
+        except Exception:
+            resposta_final = raw_response
+
+        salvar_mensagem(session_id, "model", resposta_final)
+        
+        return {"resposta_gen": resposta_final}
+
+    except Exception as e:
+        print("[ERRO NO UPLOAD/CHAT MULTIMODAL]:", e)
+        return {"resposta_gen": "⚠️ Ocorreu um erro ao processar o seu arquivo."}
+
+
+# ====================================================================
+# ROTA QUE RECEBE OS DADOS DOS FORMULÁRIOS DA BARRA LATERAL
+# ====================================================================
+@app.post("/gerar_formulario")
+def gerar_formulario_endpoint(dados_form: DadosFormulario):
+    """
+    Rota para receber os dados dos formulários HTML da barra lateral 
+    e gerar o documento direto, sem passar pelo chat da IA.
+    """
+    try:
+        tipo = dados_form.tipo.lower()
+        formato = dados_form.formato.lower() if dados_form.formato else "pdf"
+        dados = dados_form.dados
+        session_id = dados_form.session_id
+        
+        nome_arquivo = ""
+        
+        # --- Lógica da Ordem de Serviço (OS) ---
+        if tipo == "os":
+            if formato == "word" or formato == "docx":
+                nome_arquivo = criar_word_os(dados, session_id)
+            else:
+                nome_arquivo = criar_pdf_os(dados, session_id)
+        
+        # --- Lógica de Recibo / Orçamento ---
+        elif tipo in ["recibo", "orcamento"]:
+            nome_arquivo = criar_pdf(tipo, dados, session_id)
+            
+        # --- Lógica de Contrato / Declaração ---
+        elif tipo == "contrato":
+            nome_arquivo = criar_word("contrato", dados, session_id)
+        elif tipo == "declaracao":
+            nome_arquivo = criar_word_declaracao(dados, session_id)
+            
+        else:
+            return {"erro": "Tipo de documento não suportado pelo formulário."}
+            
+        # Retorna o arquivo gerado para o JavaScript fazer o download
+        return {"status": "ok", "arquivo": nome_arquivo}
+        
+    except Exception as e:
+        print("[ERRO AO GERAR PELO FORMULARIO]:", e)
+        return {"erro": str(e)}
+# ====================================================================
 
 
 @app.get("/baixar_doc/{nome_arquivo}")
@@ -1453,7 +1569,6 @@ def deletar_chat(session_id: str):
     conn.commit()
     conn.close()
     return {"status": "ok"}
-
 
 # =============================================================================
 # CHAT PRINCIPAL (INTEGRADO AO MOTOR DE DECISÃO)
