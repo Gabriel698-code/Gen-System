@@ -245,24 +245,26 @@
             }
         };
 
-        try {
-            const res = await fetch('/gerar_doc_form', {
+       try {
+            // CORREÇÃO 1: Mandando para a rota exata que criamos no main.py
+            const res = await fetch('/gerar_formulario', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(dados)
             });
             const json = await res.json();
             
-            if(json.link) window.location.href = json.link;
-            else alert('Erro: ' + (json.erro || 'Desconhecido'));
+            // CORREÇÃO 2: Verificando se o 'arquivo' voltou e chamando a rota de baixar
+            if(json.arquivo) {
+                window.location.href = '/baixar_doc/' + json.arquivo;
+            } else {
+                alert('Erro: ' + (json.erro || 'Desconhecido'));
+            }
             
         } catch(err) {
             alert('Erro de conexão.');
             console.error(err);
         }
-
-        btn.innerHTML = txtOriginal;
-        btn.disabled = false;
     }
 </script>
 </body>
